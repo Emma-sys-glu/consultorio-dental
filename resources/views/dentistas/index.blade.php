@@ -9,16 +9,9 @@
         Nuevo Dentista
     </a>
 </div>
-
-@if(session('success'))
-    <div class="alert alert-success">
-        {{ session('success') }}
-    </div>
-@endif
-
-<div class="card shadow-sm border-0 rounded-4">
+<div class="card">
     <div class="card-body">
-
+        <div class="table-responsive">
         <table class="table table-hover align-middle">
             <thead>
                 <tr>
@@ -42,7 +35,7 @@
                     <td>{{ $dentista->horario_inicio }} - {{ $dentista->horario_fin }}</td>
                     <td>{{ $dentista->consultorio }}</td>
                     <td>
-                        <a href="{{ route('dentistas.editar', $dentista) }}" class="btn btn-warning btn-sm">
+                        <a href="{{ route('dentistas.editar', $dentista) }}" class="btn btn-secondary btn-sm">
                             Editar
                         </a>
 
@@ -59,6 +52,7 @@
             @endforeach
             </tbody>
         </table>
+        </div>
 
         <div class="mt-3">
             {{ $dentistas->links() }}
