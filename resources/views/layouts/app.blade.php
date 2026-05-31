@@ -151,6 +151,7 @@
     <a href="{{ route('dentistas.vista') }}" class="sidebar-link {{ request()->routeIs('dentistas.*') ? 'active' : '' }}">Dentistas</a>
     <a href="{{ route('expedientes.vista') }}" class="sidebar-link {{ request()->routeIs('expedientes.*') ? 'active' : '' }}">Expedientes</a>
     <a href="{{ route('recetas.vista') }}" class="sidebar-link {{ request()->routeIs('recetas.*') ? 'active' : '' }}">Recetas</a>
+    <a href="{{ route('configuracion.index') }}" class="sidebar-link {{ request()->routeIs('configuracion.*') ? 'active' : '' }}">Configuracion</a>
 
     <form action="{{ route('logout') }}" method="POST" class="mt-4">
         @csrf

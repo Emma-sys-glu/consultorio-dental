@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\ExpedienteController;
 use App\Models\Paciente;
 use App\Models\Dentista;
 use App\Models\Cita;
@@ -76,13 +77,8 @@ Route::get('/vista-inventario', function () {
     ]);
 })->name('inventario.vista');
 
-Route::get('/vista-expedientes', function () {
-    return view('expedientes.index', [
-        'expedientes' => Expediente::with('paciente')
-            ->orderBy('id', 'desc')
-            ->paginate(20)
-    ]);
-})->name('expedientes.vista');
+Route::get('/vista-expedientes', [ExpedienteController::class, 'indexWeb'])
+    ->name('expedientes.vista');
 
 Route::get('/vista-tratamientos', function () {
     return view('tratamientos.index', [
@@ -308,54 +304,23 @@ Route::delete('/vista-inventario/{inventario}/eliminar', function (Inventario $i
         ->with('success', 'Producto eliminado correctamente');
 })->name('inventario.eliminar');
 
-Route::get('/vista-expedientes/crear', function () {
-    return view('expedientes.create', [
-        'pacientes' => Paciente::orderBy('nombre')->get(),
-    ]);
-})->name('expedientes.crear');
+Route::get('/vista-expedientes/crear', [ExpedienteController::class, 'createWeb'])
+    ->name('expedientes.crear');
 
-Route::post('/vista-expedientes/guardar', function (Request $request) {
-    $datos = $request->validate([
-        'paciente_id' => 'required|exists:pacientes,id|unique:expedientes,paciente_id',
-        'diagnostico' => 'nullable|string',
-        'observaciones' => 'nullable|string',
-        'procedimientos_realizados' => 'nullable|string',
-        'evolucion_tratamiento' => 'nullable|string'
-    ]);
+Route::post('/vista-expedientes/guardar', [ExpedienteController::class, 'storeWeb'])
+    ->name('expedientes.guardar');
 
-    Expediente::create($datos);
+Route::get('/vista-expedientes/{expediente}/editar', [ExpedienteController::class, 'editWeb'])
+    ->name('expedientes.editar');
 
-    return redirect()->route('expedientes.vista')
-        ->with('success', 'Expediente creado correctamente');
-})->name('expedientes.guardar');
+Route::put('/vista-expedientes/{expediente}/actualizar', [ExpedienteController::class, 'updateWeb'])
+    ->name('expedientes.actualizar');
 
-Route::get('/vista-expedientes/{expediente}/editar', function (Expediente $expediente) {
-    return view('expedientes.edit', [
-        'expediente' => $expediente,
-        'pacientes' => Paciente::orderBy('nombre')->get(),
-    ]);
-})->name('expedientes.editar');
+Route::delete('/vista-expedientes/{expediente}/eliminar', [ExpedienteController::class, 'destroyWeb'])
+    ->name('expedientes.eliminar');
 
-Route::put('/vista-expedientes/{expediente}/actualizar', function (Request $request, Expediente $expediente) {
-    $datos = $request->validate([
-        'diagnostico' => 'nullable|string',
-        'observaciones' => 'nullable|string',
-        'procedimientos_realizados' => 'nullable|string',
-        'evolucion_tratamiento' => 'nullable|string'
-    ]);
-
-    $expediente->update($datos);
-
-    return redirect()->route('expedientes.vista')
-        ->with('success', 'Expediente actualizado correctamente');
-})->name('expedientes.actualizar');
-
-Route::delete('/vista-expedientes/{expediente}/eliminar', function (Expediente $expediente) {
-    $expediente->delete();
-
-    return redirect()->route('expedientes.vista')
-        ->with('success', 'Expediente eliminado correctamente');
-})->name('expedientes.eliminar');
+Route::delete('/vista-expedientes/documentos/{documento}/eliminar', [ExpedienteController::class, 'destroyDocumentoWeb'])
+    ->name('expedientes.documentos.eliminar');
 
 Route::get('/vista-tratamientos/crear', function () {
     return view('tratamientos.create', [
@@ -484,6 +449,31 @@ Route::delete('/vista-recetas/{receta}/eliminar', function (Receta $receta) {
     return redirect()->route('recetas.vista')
         ->with('success', 'Receta eliminada correctamente');
 })->name('recetas.eliminar');
+
+Route::get('/configuracion', function () {
+    return view('configuracion.index');
+})->name('configuracion.index');
+
+Route::put('/configuracion/password', function (Request $request) {
+    $datos = $request->validate([
+        'password_actual' => 'required|string',
+        'password' => 'required|string|min:8|confirmed',
+    ]);
+
+    $usuario = Auth::user();
+
+    if (!Hash::check($datos['password_actual'], $usuario->password)) {
+        return back()->withErrors([
+            'password_actual' => 'La contraseña actual no es correcta.',
+        ]);
+    }
+
+    $usuario->update([
+        'password' => $datos['password'],
+    ]);
+
+    return back()->with('success', 'Contraseña actualizada correctamente');
+})->name('configuracion.password');
 
 });
 

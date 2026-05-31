@@ -21,4 +21,9 @@ class Expediente extends Model
     {
         return $this->belongsTo(Paciente::class);
     }
+
+    public function documentos()
+    {
+        return $this->hasMany(ExpedienteDocumento::class);
+    }
 }
