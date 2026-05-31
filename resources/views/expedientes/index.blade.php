@@ -9,16 +9,9 @@
         Nuevo Expediente
     </a>
 </div>
-
-@if(session('success'))
-    <div class="alert alert-success">
-        {{ session('success') }}
-    </div>
-@endif
-
-<div class="card shadow-sm border-0 rounded-4">
+<div class="card">
     <div class="card-body">
-
+        <div class="table-responsive">
         <table class="table table-hover align-middle">
             <thead>
                 <tr>
@@ -45,7 +38,7 @@
                     <td>{{ $expediente->observaciones }}</td>
                     <td>{{ $expediente->procedimientos_realizados }}</td>
                     <td>
-                        <a href="{{ route('expedientes.editar', $expediente) }}" class="btn btn-warning btn-sm">
+                        <a href="{{ route('expedientes.editar', $expediente) }}" class="btn btn-secondary btn-sm">
                             Editar
                         </a>
 
@@ -62,6 +55,7 @@
             @endforeach
             </tbody>
         </table>
+        </div>
 
         <div class="mt-3">
             {{ $expedientes->links() }}

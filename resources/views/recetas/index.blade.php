@@ -9,16 +9,9 @@
         Nueva Receta
     </a>
 </div>
-
-@if(session('success'))
-    <div class="alert alert-success">
-        {{ session('success') }}
-    </div>
-@endif
-
-<div class="card shadow-sm border-0 rounded-4">
+<div class="card">
     <div class="card-body">
-
+        <div class="table-responsive">
         <table class="table table-hover align-middle">
             <thead>
                 <tr>
@@ -53,7 +46,7 @@
                     <td>{{ $receta->frecuencia }}</td>
                     <td>{{ $receta->fecha_emision }}</td>
                     <td>
-                        <a href="{{ route('recetas.editar', $receta) }}" class="btn btn-warning btn-sm">
+                        <a href="{{ route('recetas.editar', $receta) }}" class="btn btn-secondary btn-sm">
                             Editar
                         </a>
 
@@ -70,6 +63,7 @@
             @endforeach
             </tbody>
         </table>
+        </div>
 
         <div class="mt-3">
             {{ $recetas->links() }}
