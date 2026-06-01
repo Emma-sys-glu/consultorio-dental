@@ -152,18 +152,18 @@
     <a href="{{ route('expedientes.vista') }}" class="sidebar-link {{ request()->routeIs('expedientes.*') ? 'active' : '' }}">Expedientes</a>
     <a href="{{ route('recetas.vista') }}" class="sidebar-link {{ request()->routeIs('recetas.*') ? 'active' : '' }}">Recetas</a>
     <a href="{{ route('configuracion.index') }}" class="sidebar-link {{ request()->routeIs('configuracion.*') ? 'active' : '' }}">Configuracion</a>
-
-    <form action="{{ route('logout') }}" method="POST" class="mt-4">
-        @csrf
-        <button class="btn btn-outline-light btn-sm w-100">Cerrar sesion</button>
-    </form>
 </aside>
 
 <div class="app-content">
     <header class="container-fluid px-4 pt-4">
-        <div class="d-flex justify-content-end align-items-center gap-3">
+        <div class="d-flex justify-content-end align-items-center gap-2 gap-sm-3">
             <span class="text-muted small d-none d-sm-inline">{{ Auth::user()->name ?? 'Usuario' }}</span>
             <span class="user-dot">{{ strtoupper(substr(Auth::user()->name ?? 'U', 0, 2)) }}</span>
+
+            <form action="{{ route('logout') }}" method="POST">
+                @csrf
+                <button class="btn btn-outline-secondary btn-sm">Cerrar sesion</button>
+            </form>
         </div>
     </header>
 
