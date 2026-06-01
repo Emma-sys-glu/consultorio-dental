@@ -1,0 +1,35 @@
+@startuml
+title Secuencia - Inicio de sesion
+
+skinparam shadowing false
+
+actor Usuario
+boundary "Login\nresources/views/auth/login.blade.php" as LoginView
+control "routes/web.php" as Routes
+control "AuthController" as AuthController
+control "Auth facade" as Auth
+entity "User" as User
+database "PostgreSQL" as DB
+boundary "Home\nresources/views/dashboard.blade.php" as Home
+
+Usuario -> LoginView : captura email y password
+LoginView -> Routes : POST /login
+Routes -> AuthController : login(request)
+AuthController -> AuthController : valida credenciales
+AuthController -> Auth : attempt(email, password)
+Auth -> User : consulta usuario
+User -> DB : SELECT users WHERE email
+DB --> User : usuario encontrado
+User --> Auth : password hash
+Auth --> AuthController : autenticacion correcta
+AuthController -> Routes : redirect /home
+Routes -> Home : DashboardController@index
+Home --> Usuario : muestra home
+
+alt credenciales incorrectas
+  Auth --> AuthController : autenticacion fallida
+  AuthController --> LoginView : redirect back con error
+  LoginView --> Usuario : muestra "Credenciales incorrectas"
+end
+
+@enduml

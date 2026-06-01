@@ -1,0 +1,74 @@
+@startuml
+title Diagrama de despliegue UML - Estado actual vs objetivo
+
+skinparam shadowing false
+skinparam linetype ortho
+
+actor "Cliente Web" as Client
+
+frame "Estado actual" <<current>> {
+  node "VM publica" <<device>> as CurrentVM {
+    node "Entorno PHP" <<executionEnvironment>> as CurrentPhp {
+      artifact "Codigo Laravel" as CurrentCode
+      artifact ".env" as CurrentEnv
+      component "Aplicacion Laravel" as CurrentApp
+    }
+  }
+
+  node "Docker Engine" <<executionEnvironment>> as CurrentDocker {
+    node "postgres_consultorio_1" <<container>> as PgContainer1 {
+      database "consultorio_dental" as Pg1
+    }
+
+    node "postgres_consultorio_2" <<container>> as PgContainer2 {
+      database "consultorio_dental replica/manual" as Pg2
+    }
+  }
+
+  Client --> CurrentApp : HTTP
+  CurrentApp --> Pg1 : pgsql
+}
+
+frame "Objetivo de alta disponibilidad" <<target>> {
+  node "VM publica" <<device>> as TargetVM {
+    node "Docker Engine" <<executionEnvironment>> as TargetDocker {
+
+      node "router" <<container>> as RouterNode {
+        artifact "nginx.conf / traefik.yml" as RouterConfig
+        component "Reverse Proxy\nLoad Balancer" as LB
+      }
+
+      node "app_1" <<container>> as AppNode1 {
+        artifact "Codigo Laravel" as AppCode1
+        artifact ".env" as AppEnv1
+        component "Laravel Runtime" as App1
+      }
+
+      node "app_2" <<container>> as AppNode2 {
+        artifact "Codigo Laravel" as AppCode2
+        artifact ".env" as AppEnv2
+        component "Laravel Runtime" as App2
+      }
+
+      node "postgres" <<container>> as PgNode {
+        database "consultorio_dental" as PgMain
+        artifact "postgres_data volume" as PgVolume
+      }
+    }
+  }
+
+  Client --> LB : HTTP/HTTPS
+  LB --> App1 : healthcheck + proxy
+  LB --> App2 : healthcheck + proxy
+  App1 --> PgMain : pgsql
+  App2 --> PgMain : pgsql
+  PgMain --> PgVolume : persistencia
+}
+
+note bottom of CurrentDocker
+El estado actual tiene base de datos en contenedor,
+pero no tiene dos contenedores de aplicacion ni
+balanceador con failover automatico.
+end note
+
+@enduml

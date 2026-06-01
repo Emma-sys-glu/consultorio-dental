@@ -218,13 +218,12 @@ Puerto túnel en servidor: 15434
 Conexión: SSH reverse tunnel
 
 
-## COntraseñas Azure 
+## Contraseñas Azure 
 adminUsername=ernesto adminPassword='DentalTec2026!*' location=mexicocentral  
 
 
 Tunel Azure 
-ssh -N -R 15434:127.0.0.1:5434 ernesto@dentaltec-g7yabej47nuye.mexicocentral.cloudapp.azure.com
-
+ssh -N -R 5434:127.0.0.1:5434 ernesto@dentaltec-g7yabej47nuye.mexicocentral.cloudapp.azure.com
 
 ## Actualizar server 
 cd /var/www/consultorio-dental

@@ -1,0 +1,174 @@
+@startuml
+title Diagrama de clases UML - Modelo de dominio
+
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+
+hide empty members
+
+abstract class Model <<Eloquent>>
+
+class User <<entity>> {
+  -id: bigint
+  -name: string
+  -email: string
+  -password: string
+  -rol: string
+  -email_verified_at: datetime
+  -remember_token: string
+  #casts(): array
+}
+
+class Paciente <<entity>> {
+  -id: bigint
+  -nombre: string
+  -apellido_paterno: string
+  -apellido_materno: string
+  -telefono: string
+  -correo: string
+  -fecha_nacimiento: date
+  -curp: string
+  -tipo_sangre: string
+  -alergias: string
+  -antecedentes_medicos: text
+  +citas(): HasMany
+  +expediente(): HasOne
+}
+
+class Dentista <<entity>> {
+  -id: bigint
+  -nombre: string
+  -apellido_paterno: string
+  -apellido_materno: string
+  -especialidad: string
+  -cedula_profesional: string
+  -telefono: string
+  -correo: string
+  -horario_inicio: time
+  -horario_fin: time
+  -consultorio: string
+  +citas(): HasMany
+}
+
+class Cita <<entity>> {
+  -id: bigint
+  -paciente_id: bigint
+  -dentista_id: bigint
+  -fecha: date
+  -hora_inicio: time
+  -hora_fin: time
+  -duracion_minutos: int
+  -motivo: string
+  -estado: EstadoCita
+  +paciente(): BelongsTo
+  +dentista(): BelongsTo
+}
+
+class Expediente <<entity>> {
+  -id: bigint
+  -paciente_id: bigint
+  -diagnostico: text
+  -observaciones: text
+  -procedimientos_realizados: text
+  -evolucion_tratamiento: text
+  +paciente(): BelongsTo
+  +documentos(): HasMany
+}
+
+class ExpedienteDocumento <<entity>> {
+  -id: bigint
+  -expediente_id: bigint
+  -tipo: string
+  -nombre_original: string
+  -ruta: string
+  -mime_type: string
+  -tamano: bigint
+  +expediente(): BelongsTo
+}
+
+class Tratamiento <<entity>> {
+  -id: bigint
+  -paciente_id: bigint
+  -dentista_id: bigint
+  -expediente_id: bigint
+  -cita_id: bigint
+  -nombre: string
+  -descripcion: text
+  -costo: decimal
+  -estado: EstadoTratamiento
+  -fecha_inicio: date
+  -fecha_fin: date
+  +paciente(): BelongsTo
+  +dentista(): BelongsTo
+  +expediente(): BelongsTo
+  +cita(): BelongsTo
+}
+
+class Receta <<entity>> {
+  -id: bigint
+  -paciente_id: bigint
+  -dentista_id: bigint
+  -tratamiento_id: bigint
+  -medicamento: string
+  -dosis: string
+  -frecuencia: string
+  -duracion: string
+  -indicaciones: text
+  -fecha_emision: date
+  +paciente(): BelongsTo
+  +dentista(): BelongsTo
+  +tratamiento(): BelongsTo
+}
+
+class Inventario <<entity>> {
+  -id: bigint
+  -nombre: string
+  -categoria: string
+  -cantidad: int
+  -stock_minimo: int
+  -fecha_caducidad: date
+  -proveedor: string
+  -precio_unitario: decimal
+}
+
+enum EstadoCita <<enumeration>> {
+  pendiente
+  confirmada
+  cancelada
+  completada
+}
+
+enum EstadoTratamiento <<enumeration>> {
+  pendiente
+  en_proceso
+  finalizado
+  cancelado
+}
+
+Model <|-- User
+Model <|-- Paciente
+Model <|-- Dentista
+Model <|-- Cita
+Model <|-- Expediente
+Model <|-- ExpedienteDocumento
+Model <|-- Tratamiento
+Model <|-- Receta
+Model <|-- Inventario
+
+Paciente "1" o-- "0..*" Cita : citas
+Dentista "1" o-- "0..*" Cita : citas
+Paciente "1" *-- "0..1" Expediente : expediente
+Expediente "1" *-- "0..*" ExpedienteDocumento : documentos
+Paciente "1" o-- "0..*" Tratamiento : tratamientos
+Dentista "1" o-- "0..*" Tratamiento : tratamientos
+Expediente "1" o-- "0..*" Tratamiento : tratamientos
+Cita "0..1" o-- "0..*" Tratamiento : tratamientos
+Paciente "1" o-- "0..*" Receta : recetas
+Dentista "1" o-- "0..*" Receta : recetas
+Tratamiento "0..1" o-- "0..*" Receta : recetas
+
+Cita --> EstadoCita
+Tratamiento --> EstadoTratamiento
+
+@enduml

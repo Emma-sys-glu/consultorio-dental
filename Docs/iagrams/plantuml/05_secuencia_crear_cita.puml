@@ -1,0 +1,76 @@
+@startuml
+title Diagrama de secuencia UML - Agendar cita
+
+skinparam shadowing false
+autonumber
+
+actor "Usuario autenticado" as Usuario
+boundary "citas/create.blade.php" as View
+control "Route::post\n/vista-citas/guardar" as Route
+control "Authenticate" as Auth
+control "VerifyCsrfToken" as Csrf
+control "CitaController" as Controller
+control "Validator" as Validator
+entity "Paciente" as Paciente
+entity "Dentista" as Dentista
+entity "Cita" as Cita
+database "PostgreSQL" as DB
+
+Usuario -> View : Captura datos de cita
+activate View
+View -> Route : POST formulario
+deactivate View
+
+activate Route
+Route -> Auth : handle(request)
+activate Auth
+Auth --> Route : usuario autorizado
+deactivate Auth
+
+Route -> Csrf : tokens coinciden
+activate Csrf
+Csrf --> Route : token valido
+deactivate Csrf
+
+Route -> Controller : storeWeb(request)
+activate Controller
+
+Controller -> Validator : validate(request)
+activate Validator
+
+alt datos invalidos
+  Validator --> Controller : ValidationException
+  Controller --> View : redirect back(errors)
+else datos validos
+  Validator --> Controller : datos validados
+  Controller -> Paciente : exists(paciente_id)
+  activate Paciente
+  Paciente -> DB : SELECT pacientes
+  DB --> Paciente : paciente
+  Paciente --> Controller : encontrado
+  deactivate Paciente
+
+  Controller -> Dentista : exists(dentista_id)
+  activate Dentista
+  Dentista -> DB : SELECT dentistas
+  DB --> Dentista : dentista
+  Dentista --> Controller : encontrado
+  deactivate Dentista
+
+  Controller -> Cita : create(datos)
+  activate Cita
+  Cita -> DB : INSERT citas
+  DB --> Cita : id generado
+  Cita --> Controller : cita creada
+  deactivate Cita
+
+  Controller --> View : redirect(route citas.vista, success)
+end
+
+deactivate Validator
+deactivate Controller
+deactivate Route
+
+View --> Usuario : Resultado de la operacion
+
+@enduml

@@ -1,0 +1,51 @@
+@startuml
+title Diagrama de despliegue UML - Alta disponibilidad objetivo
+
+skinparam shadowing false
+skinparam linetype ortho
+
+actor "Cliente Web" as Client
+
+node "Internet" <<network>> {
+}
+
+node "Servidor Linux / VM publica" <<device>> {
+  node "Docker Engine" <<executionEnvironment>> {
+
+    node "nginx_router" <<container>> {
+      artifact "nginx.conf" as NginxConf
+      component "Reverse Proxy\nLoad Balancer" as LB
+    }
+
+    node "laravel_app_1" <<container>> {
+      artifact "Codigo Laravel" as Code1
+      artifact ".env" as Env1
+      component "PHP-FPM / Artisan Server" as Runtime1
+    }
+
+    node "laravel_app_2" <<container>> {
+      artifact "Codigo Laravel" as Code2
+      artifact ".env" as Env2
+      component "PHP-FPM / Artisan Server" as Runtime2
+    }
+
+    node "postgres_db" <<container>> {
+      database "consultorio_dental" as Pg
+      artifact "volume postgres_data" as PgVolume
+    }
+  }
+}
+
+Client --> LB : HTTP/HTTPS :80/:443
+LB --> Runtime1 : balanceo / healthcheck
+LB --> Runtime2 : balanceo / healthcheck
+Runtime1 --> Pg : DB_CONNECTION=pgsql
+Runtime2 --> Pg : DB_CONNECTION=pgsql
+Pg --> PgVolume : persistencia
+
+note right of LB
+El router debe enviar trafico a app_1 o app_2.
+Si un contenedor falla, usa el otro disponible.
+end note
+
+@enduml

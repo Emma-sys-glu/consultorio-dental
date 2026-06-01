@@ -1,0 +1,176 @@
+@startuml
+title Diagrama entidad-relacion UML - Esquema relacional
+
+hide circle
+skinparam shadowing false
+skinparam linetype ortho
+
+entity "users" as users <<table>> {
+  * id : bigint <<PK>>
+  --
+  * name : varchar
+  * email : varchar <<UK>>
+  email_verified_at : timestamp
+  * password : varchar
+  remember_token : varchar
+  * rol : varchar
+  created_at : timestamp
+  updated_at : timestamp
+}
+
+entity "pacientes" as pacientes <<table>> {
+  * id : bigint <<PK>>
+  --
+  * nombre : varchar
+  * apellido_paterno : varchar
+  apellido_materno : varchar
+  * telefono : varchar
+  * correo : varchar <<UK>>
+  * fecha_nacimiento : date
+  curp : varchar
+  tipo_sangre : varchar
+  alergias : varchar
+  antecedentes_medicos : text
+  created_at : timestamp
+  updated_at : timestamp
+}
+
+entity "dentistas" as dentistas <<table>> {
+  * id : bigint <<PK>>
+  --
+  * nombre : varchar
+  * apellido_paterno : varchar
+  apellido_materno : varchar
+  * especialidad : varchar
+  * cedula_profesional : varchar <<UK>>
+  * telefono : varchar
+  * correo : varchar <<UK>>
+  * horario_inicio : time
+  * horario_fin : time
+  * consultorio : varchar
+  created_at : timestamp
+  updated_at : timestamp
+}
+
+entity "citas" as citas <<table>> {
+  * id : bigint <<PK>>
+  --
+  * paciente_id : bigint <<FK>>
+  * dentista_id : bigint <<FK>>
+  * fecha : date
+  * hora_inicio : time
+  * hora_fin : time
+  * duracion_minutos : int
+  * motivo : varchar
+  * estado : enum
+  created_at : timestamp
+  updated_at : timestamp
+}
+
+entity "expedientes" as expedientes <<table>> {
+  * id : bigint <<PK>>
+  --
+  * paciente_id : bigint <<FK>>
+  diagnostico : text
+  observaciones : text
+  procedimientos_realizados : text
+  evolucion_tratamiento : text
+  created_at : timestamp
+  updated_at : timestamp
+}
+
+entity "expediente_documentos" as documentos <<table>> {
+  * id : bigint <<PK>>
+  --
+  * expediente_id : bigint <<FK>>
+  * tipo : varchar
+  * nombre_original : varchar
+  * ruta : varchar
+  mime_type : varchar
+  * tamano : bigint
+  created_at : timestamp
+  updated_at : timestamp
+}
+
+entity "tratamientos" as tratamientos <<table>> {
+  * id : bigint <<PK>>
+  --
+  * paciente_id : bigint <<FK>>
+  * dentista_id : bigint <<FK>>
+  * expediente_id : bigint <<FK>>
+  cita_id : bigint <<FK nullable>>
+  * nombre : varchar
+  descripcion : text
+  * costo : decimal(10,2)
+  * estado : enum
+  * fecha_inicio : date
+  fecha_fin : date
+  created_at : timestamp
+  updated_at : timestamp
+}
+
+entity "recetas" as recetas <<table>> {
+  * id : bigint <<PK>>
+  --
+  * paciente_id : bigint <<FK>>
+  * dentista_id : bigint <<FK>>
+  tratamiento_id : bigint <<FK nullable>>
+  * medicamento : varchar
+  * dosis : varchar
+  * frecuencia : varchar
+  * duracion : varchar
+  indicaciones : text
+  * fecha_emision : date
+  created_at : timestamp
+  updated_at : timestamp
+}
+
+entity "inventarios" as inventarios <<table>> {
+  * id : bigint <<PK>>
+  --
+  * nombre : varchar
+  * categoria : varchar
+  * cantidad : int
+  * stock_minimo : int
+  fecha_caducidad : date
+  proveedor : varchar
+  * precio_unitario : decimal(10,2)
+  created_at : timestamp
+  updated_at : timestamp
+}
+
+entity "personal_access_tokens" as tokens <<table>> {
+  * id : bigint <<PK>>
+  --
+  * tokenable_type : varchar
+  * tokenable_id : bigint
+  * name : text
+  * token : varchar <<UK>>
+  abilities : text
+  last_used_at : timestamp
+  expires_at : timestamp
+  created_at : timestamp
+  updated_at : timestamp
+}
+
+pacientes ||--o{ citas : "FK citas.paciente_id"
+dentistas ||--o{ citas : "FK citas.dentista_id"
+pacientes ||--o| expedientes : "FK expedientes.paciente_id"
+expedientes ||--o{ documentos : "FK expediente_documentos.expediente_id"
+pacientes ||--o{ tratamientos : "FK tratamientos.paciente_id"
+dentistas ||--o{ tratamientos : "FK tratamientos.dentista_id"
+expedientes ||--o{ tratamientos : "FK tratamientos.expediente_id"
+citas ||--o{ tratamientos : "FK tratamientos.cita_id"
+pacientes ||--o{ recetas : "FK recetas.paciente_id"
+dentistas ||--o{ recetas : "FK recetas.dentista_id"
+tratamientos ||--o{ recetas : "FK recetas.tratamiento_id"
+
+note bottom
+Notacion:
+* = campo obligatorio
+PK = llave primaria
+FK = llave foranea
+UK = llave unica
+end note
+
+@enduml

@@ -1,0 +1,33 @@
+@startuml
+title Maquina de estados - Cita dental
+
+skinparam shadowing false
+
+[*] --> Pendiente : crear cita
+
+Pendiente --> Confirmada : confirmar asistencia
+Pendiente --> Cancelada : cancelar cita
+Pendiente --> Reprogramada : cambiar fecha/hora
+
+Reprogramada --> Confirmada : confirmar nueva fecha
+Reprogramada --> Cancelada : cancelar
+
+Confirmada --> Completada : finalizar atencion
+Confirmada --> Cancelada : cancelar antes de atender
+Confirmada --> NoAsistio : paciente no llega
+
+Completada --> [*]
+Cancelada --> [*]
+NoAsistio --> [*]
+
+note right of Pendiente
+Estado inicial usado cuando
+se registra una cita nueva.
+end note
+
+note bottom of Reprogramada
+En el sistema actual puede representarse
+actualizando fecha, hora y estado.
+end note
+
+@enduml
