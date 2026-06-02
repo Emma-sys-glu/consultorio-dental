@@ -67,4 +67,21 @@ class InventarioWebController extends Controller
             'precio_unitario' => 'required|numeric|min:0'
         ]);
     }
+
+    public function alertas()
+{
+    $stockBajo = \App\Models\Inventario::whereColumn('cantidad', '<=', 'stock_minimo')
+        ->orderBy('cantidad', 'asc')
+        ->get();
+
+    $proximosCaducar = \App\Models\Inventario::whereNotNull('fecha_caducidad')
+        ->whereDate('fecha_caducidad', '<=', now()->addDays(30))
+        ->orderBy('fecha_caducidad', 'asc')
+        ->get();
+
+    return view('inventario.alertas', [
+        'stockBajo' => $stockBajo,
+        'proximosCaducar' => $proximosCaducar,
+    ]);
+}
 }

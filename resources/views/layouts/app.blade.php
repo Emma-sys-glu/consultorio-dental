@@ -142,16 +142,41 @@
         </span>
     </a>
 
-    <div class="small text-white-50 text-uppercase mb-2">Dashboard</div>
-    <a href="{{ route('dashboard') }}" class="sidebar-link {{ request()->routeIs('dashboard') ? 'active' : '' }}">Home</a>
+    @php
+    $rol = Auth::user()->rol ?? null;
+@endphp
+
+@if($rol === 'administrador')
     <a href="{{ route('citas.vista') }}" class="sidebar-link {{ request()->routeIs('citas.*') ? 'active' : '' }}">Citas</a>
     <a href="{{ route('pacientes.vista') }}" class="sidebar-link {{ request()->routeIs('pacientes.*') ? 'active' : '' }}">Pacientes</a>
     <a href="{{ route('tratamientos.vista') }}" class="sidebar-link {{ request()->routeIs('tratamientos.*') ? 'active' : '' }}">Tratamientos</a>
     <a href="{{ route('inventario.vista') }}" class="sidebar-link {{ request()->routeIs('inventario.*') ? 'active' : '' }}">Inventario</a>
+    <a href="{{ route('inventario.alertas') }}" class="sidebar-link {{ request()->routeIs('inventario.alertas') ? 'active' : '' }}">Alertas Inventario</a>
     <a href="{{ route('dentistas.vista') }}" class="sidebar-link {{ request()->routeIs('dentistas.*') ? 'active' : '' }}">Dentistas</a>
     <a href="{{ route('expedientes.vista') }}" class="sidebar-link {{ request()->routeIs('expedientes.*') ? 'active' : '' }}">Expedientes</a>
     <a href="{{ route('recetas.vista') }}" class="sidebar-link {{ request()->routeIs('recetas.*') ? 'active' : '' }}">Recetas</a>
-    <a href="{{ route('configuracion.index') }}" class="sidebar-link {{ request()->routeIs('configuracion.*') ? 'active' : '' }}">Configuracion</a>
+@endif
+
+@if($rol === 'recepcionista')
+    <a href="{{ route('citas.vista') }}" class="sidebar-link {{ request()->routeIs('citas.*') ? 'active' : '' }}">Citas</a>
+    <a href="{{ route('pacientes.vista') }}" class="sidebar-link {{ request()->routeIs('pacientes.*') ? 'active' : '' }}">Pacientes</a>
+    <a href="{{ route('inventario.vista') }}" class="sidebar-link {{ request()->routeIs('inventario.*') ? 'active' : '' }}">Inventario</a>
+@endif
+
+@if($rol === 'dentista')
+    <a href="{{ route('citas.vista') }}" class="sidebar-link {{ request()->routeIs('citas.*') ? 'active' : '' }}">Mis Citas</a>
+    <a href="{{ route('expedientes.vista') }}" class="sidebar-link {{ request()->routeIs('expedientes.*') ? 'active' : '' }}">Expedientes</a>
+    <a href="{{ route('tratamientos.vista') }}" class="sidebar-link {{ request()->routeIs('tratamientos.*') ? 'active' : '' }}">Tratamientos</a>
+    <a href="{{ route('recetas.vista') }}" class="sidebar-link {{ request()->routeIs('recetas.*') ? 'active' : '' }}">Recetas</a>
+@endif
+
+@if($rol === 'paciente')
+    <a href="{{ route('citas.vista') }}" class="sidebar-link {{ request()->routeIs('citas.*') ? 'active' : '' }}">Mis Citas</a>
+    <a href="{{ route('recetas.vista') }}" class="sidebar-link {{ request()->routeIs('recetas.*') ? 'active' : '' }}">Mis Recetas</a>
+    <a href="{{ route('notificaciones.index') }}" class="sidebar-link {{ request()->routeIs('notificaciones.*') ? 'active' : '' }}">Mis Notificaciones</a>
+@endif
+
+<a href="{{ route('configuracion.index') }}" class="sidebar-link {{ request()->routeIs('configuracion.*') ? 'active' : '' }}">Configuracion</a>
 </aside>
 
 <div class="app-content">

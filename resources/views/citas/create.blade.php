@@ -13,16 +13,28 @@
 
                 <div class="col-md-6">
                     <label class="form-label">Paciente</label>
-                    <select name="paciente_id" class="form-select" required>
-                        <option value="">Seleccionar paciente</option>
-                        @foreach($pacientes as $paciente)
-                            <option value="{{ $paciente->id }}">
-                                {{ $paciente->nombre }}
-                                {{ $paciente->apellido_paterno }}
-                                {{ $paciente->apellido_materno }}
-                            </option>
-                        @endforeach
-                    </select>
+                    @if(auth()->user()->rol === 'paciente')
+                        <input type="hidden" name="paciente_id" value="{{ auth()->user()->paciente_id }}">
+
+                        <div class="col-md-6">
+                            <label class="form-label">Paciente</label>
+                            <input type="text" class="form-control"
+                                value="{{ auth()->user()->paciente->nombre }} {{ auth()->user()->paciente->apellido_paterno }}"
+                                disabled>
+                        </div>
+                    @else
+                        <div class="col-md-6">
+                            <label class="form-label">Paciente</label>
+                            <select name="paciente_id" class="form-select" required>
+                                <option value="">Seleccionar paciente</option>
+                                @foreach($pacientes as $paciente)
+                                    <option value="{{ $paciente->id }}">
+                                        {{ $paciente->nombre }} {{ $paciente->apellido_paterno }} {{ $paciente->apellido_materno }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                    @endif
                 </div>
 
                 <div class="col-md-6">

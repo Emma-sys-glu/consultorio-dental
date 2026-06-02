@@ -16,12 +16,18 @@ class CitaController extends Controller
             'data' => Cita::with(['paciente', 'dentista'])
                 ->orderBy('fecha', 'desc')
                 ->orderBy('hora_inicio', 'desc')
-                ->paginate(20)
+                ->paginate(10)
         ]);
     }
 
     public function store(Request $request)
     {
+
+   if (auth()->user()->rol === 'paciente') {
+    $request->merge([
+        'paciente_id' => auth()->user()->paciente_id
+    ]);
+}
         $datos = $request->validate([
             'paciente_id' => 'required|exists:pacientes,id',
             'dentista_id' => 'required|exists:dentistas,id',

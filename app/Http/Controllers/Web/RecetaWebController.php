@@ -12,13 +12,27 @@ use Illuminate\Http\Request;
 class RecetaWebController extends Controller
 {
     public function index()
-    {
-        return view('recetas.index', [
-            'recetas' => Receta::with(['paciente', 'dentista', 'tratamiento'])
-                ->orderBy('id', 'desc')
-                ->paginate(20)
-        ]);
+{
+    $usuario = auth()->user();
+
+    $query = \App\Models\Receta::with(['paciente', 'dentista', 'tratamiento']);
+
+    if ($usuario->rol === 'paciente') {
+        $query->where('paciente_id', $usuario->paciente_id);
     }
+
+    if ($usuario->rol === 'dentista') {
+        $query->where('dentista_id', $usuario->dentista_id);
+    }
+
+    $recetas = $query
+        ->orderBy('id', 'desc')
+        ->paginate(20);
+
+    return view('recetas.index', [
+        'recetas' => $recetas
+    ]);
+}
 
     public function create()
     {
