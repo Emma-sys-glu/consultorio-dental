@@ -255,6 +255,7 @@ sudo docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" 2>&1
 
 ## Prueba Alta Disponibilidad 
 
+
 Terminal 1 — Watchdog en tiempo real
 
 sudo journalctl -u db-watchdog.service -f

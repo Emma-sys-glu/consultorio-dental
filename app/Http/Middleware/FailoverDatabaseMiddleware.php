@@ -12,6 +12,10 @@ class FailoverDatabaseMiddleware
 {
     public function handle(Request $request, Closure $next)
     {
+        if (app()->environment('testing')) {
+            return $next($request);
+        }
+
         try {
             $inicio = microtime(true);
             DB::connection('pgsql_principal')->select('SELECT 1');

@@ -114,7 +114,7 @@ Route::middleware('auth')->group(function () {
         ->middleware('rol:administrador,recepcionista,dentista,paciente')
         ->name('citas.actualizar');
 
-    Route::put('/vista-citas/{cita}/cancelar', [CitaWebController::class, 'cancel'])
+    Route::put('/vista-citas/{cita}/cancelar', [CitaWebController::class, 'cancelar'])
         ->middleware('rol:administrador,recepcionista,dentista,paciente')
         ->name('citas.cancelar');
 
