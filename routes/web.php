@@ -13,6 +13,7 @@ use App\Http\Controllers\Web\RecetaWebController;
 use App\Http\Controllers\Web\TratamientoWebController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Web\NotificacionWebController;
+use App\Http\Controllers\Web\PushSubscriptionController;
 
 Route::get('/login', [AuthWebController::class, 'showLogin'])
     ->name('login');
@@ -31,9 +32,16 @@ Route::middleware('auth')->group(function () {
     ->name('inventario.alertas');
 
     Route::get('/', [DashboardController::class, 'redirectToHome']);
+    Route::get('/dashboard', [DashboardController::class, 'redirectToHome']);
+
     Route::get('/home', [DashboardController::class, 'index'])
         ->name('dashboard');
-    Route::get('/dashboard', [DashboardController::class, 'redirectToHome']);
+
+    Route::get('/home-dentista', [DashboardController::class, 'indexDentista'])
+        ->name('dashboard.dentista');
+
+    Route::get('/home-paciente', [DashboardController::class, 'indexPaciente'])
+        ->name('dashboard.paciente');
 
     Route::post('/logout', [AuthWebController::class, 'logout'])
         ->name('logout');
@@ -225,4 +233,15 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/probar-recordatorios', [JobWebController::class, 'probarRecordatorios'])
         ->middleware('rol:administrador');
+});
+
+// PWA — página sin conexión (pública)
+Route::get('/offline', function () {
+    return view('vendor.laravelpwa.offline');
+})->name('pwa.offline');
+
+// PWA Push — suscripciones (requieren auth)
+Route::middleware('auth')->group(function () {
+    Route::post('/push/subscribe',   [PushSubscriptionController::class, 'guardar'])->name('push.subscribe');
+    Route::post('/push/unsubscribe', [PushSubscriptionController::class, 'eliminar'])->name('push.unsubscribe');
 });

@@ -250,8 +250,11 @@ cd /var/www/consultorio-dental && php artisan serve --host=0.0.0.0 --port=8000
 Todo junto 
 cd /var/www/consultorio-dental && sudo docker compose -f docker-compose-replica.yml up -d && php artisan serve --host=0.0.0.0 --port=8000
 
+sudo docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" 2>&1
+
 
 ## Prueba Alta Disponibilidad 
+
 Terminal 1 — Watchdog en tiempo real
 
 sudo journalctl -u db-watchdog.service -f
@@ -290,3 +293,9 @@ Paso 4 — Ver el log del watchdog guardado:
 
 
 cat /var/log/db-watchdog.log
+
+
+## Detener Server 
+pkill -f "artisan serve"; sudo systemctl stop db-watchdog.service && sudo docker compose -f /var/www/consultorio-dental/docker-compose-replica.yml down
+
+

@@ -4,8 +4,10 @@
     <meta charset="UTF-8">
     <title>@yield('title', 'Consultorio Dental')</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    @laravelPWA
     <style>
         :root {
             --dental-teal:      #067a7e;
@@ -159,17 +161,27 @@
     </div>
 
     <div class="offcanvas-body pt-3 px-3">
-        @php $rol = Auth::user()->rol ?? null; @endphp
+        @php
+            $rol       = Auth::user()->rol ?? null;
+            $homeRoute = match($rol) {
+                'dentista' => route('dashboard.dentista'),
+                'paciente' => route('dashboard.paciente'),
+                default    => route('dashboard'),
+            };
+            $homeActive = request()->routeIs('dashboard') || request()->routeIs('dashboard.*');
+        @endphp
+
+        <a href="{{ $homeRoute }}" class="sidebar-link {{ $homeActive ? 'active' : '' }}">Inicio</a>
 
         @if($rol === 'administrador')
-            <a href="{{ route('citas.vista') }}"       class="sidebar-link {{ request()->routeIs('citas.*')         ? 'active' : '' }}">Citas</a>
-            <a href="{{ route('pacientes.vista') }}"   class="sidebar-link {{ request()->routeIs('pacientes.*')     ? 'active' : '' }}">Pacientes</a>
-            <a href="{{ route('tratamientos.vista') }}" class="sidebar-link {{ request()->routeIs('tratamientos.*') ? 'active' : '' }}">Tratamientos</a>
-            <a href="{{ route('inventario.vista') }}"  class="sidebar-link {{ request()->routeIs('inventario.*')    ? 'active' : '' }}">Inventario</a>
+            <a href="{{ route('citas.vista') }}"        class="sidebar-link {{ request()->routeIs('citas.*')            ? 'active' : '' }}">Citas</a>
+            <a href="{{ route('pacientes.vista') }}"    class="sidebar-link {{ request()->routeIs('pacientes.*')        ? 'active' : '' }}">Pacientes</a>
+            <a href="{{ route('tratamientos.vista') }}" class="sidebar-link {{ request()->routeIs('tratamientos.*')     ? 'active' : '' }}">Tratamientos</a>
+            <a href="{{ route('inventario.vista') }}"   class="sidebar-link {{ request()->routeIs('inventario.*')       ? 'active' : '' }}">Inventario</a>
             <a href="{{ route('inventario.alertas') }}" class="sidebar-link {{ request()->routeIs('inventario.alertas') ? 'active' : '' }}">Alertas Inventario</a>
-            <a href="{{ route('dentistas.vista') }}"   class="sidebar-link {{ request()->routeIs('dentistas.*')     ? 'active' : '' }}">Dentistas</a>
-            <a href="{{ route('expedientes.vista') }}" class="sidebar-link {{ request()->routeIs('expedientes.*')   ? 'active' : '' }}">Expedientes</a>
-            <a href="{{ route('recetas.vista') }}"     class="sidebar-link {{ request()->routeIs('recetas.*')       ? 'active' : '' }}">Recetas</a>
+            <a href="{{ route('dentistas.vista') }}"    class="sidebar-link {{ request()->routeIs('dentistas.*')        ? 'active' : '' }}">Dentistas</a>
+            <a href="{{ route('expedientes.vista') }}"  class="sidebar-link {{ request()->routeIs('expedientes.*')      ? 'active' : '' }}">Expedientes</a>
+            <a href="{{ route('recetas.vista') }}"      class="sidebar-link {{ request()->routeIs('recetas.*')          ? 'active' : '' }}">Recetas</a>
         @endif
 
         @if($rol === 'recepcionista')
@@ -179,15 +191,15 @@
         @endif
 
         @if($rol === 'dentista')
-            <a href="{{ route('citas.vista') }}"       class="sidebar-link {{ request()->routeIs('citas.*')         ? 'active' : '' }}">Mis Citas</a>
-            <a href="{{ route('expedientes.vista') }}" class="sidebar-link {{ request()->routeIs('expedientes.*')   ? 'active' : '' }}">Expedientes</a>
+            <a href="{{ route('citas.vista') }}"        class="sidebar-link {{ request()->routeIs('citas.*')        ? 'active' : '' }}">Mis Citas</a>
+            <a href="{{ route('expedientes.vista') }}"  class="sidebar-link {{ request()->routeIs('expedientes.*')  ? 'active' : '' }}">Expedientes</a>
             <a href="{{ route('tratamientos.vista') }}" class="sidebar-link {{ request()->routeIs('tratamientos.*') ? 'active' : '' }}">Tratamientos</a>
-            <a href="{{ route('recetas.vista') }}"     class="sidebar-link {{ request()->routeIs('recetas.*')       ? 'active' : '' }}">Recetas</a>
+            <a href="{{ route('recetas.vista') }}"      class="sidebar-link {{ request()->routeIs('recetas.*')      ? 'active' : '' }}">Recetas</a>
         @endif
 
         @if($rol === 'paciente')
-            <a href="{{ route('citas.vista') }}"         class="sidebar-link {{ request()->routeIs('citas.*')          ? 'active' : '' }}">Mis Citas</a>
-            <a href="{{ route('recetas.vista') }}"       class="sidebar-link {{ request()->routeIs('recetas.*')        ? 'active' : '' }}">Mis Recetas</a>
+            <a href="{{ route('citas.vista') }}"          class="sidebar-link {{ request()->routeIs('citas.*')          ? 'active' : '' }}">Mis Citas</a>
+            <a href="{{ route('recetas.vista') }}"        class="sidebar-link {{ request()->routeIs('recetas.*')        ? 'active' : '' }}">Mis Recetas</a>
             <a href="{{ route('notificaciones.index') }}" class="sidebar-link {{ request()->routeIs('notificaciones.*') ? 'active' : '' }}">Mis Notificaciones</a>
         @endif
 
@@ -197,7 +209,17 @@
 
 
 <aside class="app-sidebar d-none d-lg-flex p-4">
-    <a href="{{ route('dashboard') }}"
+    @php
+        $rol       = Auth::user()->rol ?? null;
+        $homeRoute = match($rol) {
+            'dentista' => route('dashboard.dentista'),
+            'paciente' => route('dashboard.paciente'),
+            default    => route('dashboard'),
+        };
+        $homeActive = request()->routeIs('dashboard') || request()->routeIs('dashboard.*');
+    @endphp
+
+    <a href="{{ $homeRoute }}"
        class="text-white text-decoration-none d-flex align-items-center gap-2 mb-4">
         <span class="brand-dot">D</span>
         <span>
@@ -206,17 +228,17 @@
         </span>
     </a>
 
-    @php $rol = Auth::user()->rol ?? null; @endphp
+    <a href="{{ $homeRoute }}" class="sidebar-link {{ $homeActive ? 'active' : '' }}">Inicio</a>
 
     @if($rol === 'administrador')
-        <a href="{{ route('citas.vista') }}"       class="sidebar-link {{ request()->routeIs('citas.*')         ? 'active' : '' }}">Citas</a>
-        <a href="{{ route('pacientes.vista') }}"   class="sidebar-link {{ request()->routeIs('pacientes.*')     ? 'active' : '' }}">Pacientes</a>
-        <a href="{{ route('tratamientos.vista') }}" class="sidebar-link {{ request()->routeIs('tratamientos.*') ? 'active' : '' }}">Tratamientos</a>
-        <a href="{{ route('inventario.vista') }}"  class="sidebar-link {{ request()->routeIs('inventario.*')    ? 'active' : '' }}">Inventario</a>
-        <a href="{{ route('inventario.alertas') }}" class="sidebar-link {{ request()->routeIs('inventario.alertas') ? 'active' : '' }}">Alertas Inventario</a>
-        <a href="{{ route('dentistas.vista') }}"   class="sidebar-link {{ request()->routeIs('dentistas.*')     ? 'active' : '' }}">Dentistas</a>
-        <a href="{{ route('expedientes.vista') }}" class="sidebar-link {{ request()->routeIs('expedientes.*')   ? 'active' : '' }}">Expedientes</a>
-        <a href="{{ route('recetas.vista') }}"     class="sidebar-link {{ request()->routeIs('recetas.*')       ? 'active' : '' }}">Recetas</a>
+        <a href="{{ route('citas.vista') }}"        class="sidebar-link {{ request()->routeIs('citas.*')             ? 'active' : '' }}">Citas</a>
+        <a href="{{ route('pacientes.vista') }}"    class="sidebar-link {{ request()->routeIs('pacientes.*')         ? 'active' : '' }}">Pacientes</a>
+        <a href="{{ route('tratamientos.vista') }}" class="sidebar-link {{ request()->routeIs('tratamientos.*')      ? 'active' : '' }}">Tratamientos</a>
+        <a href="{{ route('inventario.vista') }}"   class="sidebar-link {{ request()->routeIs('inventario.*')        ? 'active' : '' }}">Inventario</a>
+        <a href="{{ route('inventario.alertas') }}" class="sidebar-link {{ request()->routeIs('inventario.alertas')  ? 'active' : '' }}">Alertas Inventario</a>
+        <a href="{{ route('dentistas.vista') }}"    class="sidebar-link {{ request()->routeIs('dentistas.*')         ? 'active' : '' }}">Dentistas</a>
+        <a href="{{ route('expedientes.vista') }}"  class="sidebar-link {{ request()->routeIs('expedientes.*')       ? 'active' : '' }}">Expedientes</a>
+        <a href="{{ route('recetas.vista') }}"      class="sidebar-link {{ request()->routeIs('recetas.*')           ? 'active' : '' }}">Recetas</a>
     @endif
 
     @if($rol === 'recepcionista')
@@ -226,15 +248,15 @@
     @endif
 
     @if($rol === 'dentista')
-        <a href="{{ route('citas.vista') }}"       class="sidebar-link {{ request()->routeIs('citas.*')         ? 'active' : '' }}">Mis Citas</a>
-        <a href="{{ route('expedientes.vista') }}" class="sidebar-link {{ request()->routeIs('expedientes.*')   ? 'active' : '' }}">Expedientes</a>
+        <a href="{{ route('citas.vista') }}"        class="sidebar-link {{ request()->routeIs('citas.*')        ? 'active' : '' }}">Mis Citas</a>
+        <a href="{{ route('expedientes.vista') }}"  class="sidebar-link {{ request()->routeIs('expedientes.*')  ? 'active' : '' }}">Expedientes</a>
         <a href="{{ route('tratamientos.vista') }}" class="sidebar-link {{ request()->routeIs('tratamientos.*') ? 'active' : '' }}">Tratamientos</a>
-        <a href="{{ route('recetas.vista') }}"     class="sidebar-link {{ request()->routeIs('recetas.*')       ? 'active' : '' }}">Recetas</a>
+        <a href="{{ route('recetas.vista') }}"      class="sidebar-link {{ request()->routeIs('recetas.*')      ? 'active' : '' }}">Recetas</a>
     @endif
 
     @if($rol === 'paciente')
-        <a href="{{ route('citas.vista') }}"         class="sidebar-link {{ request()->routeIs('citas.*')          ? 'active' : '' }}">Mis Citas</a>
-        <a href="{{ route('recetas.vista') }}"       class="sidebar-link {{ request()->routeIs('recetas.*')        ? 'active' : '' }}">Mis Recetas</a>
+        <a href="{{ route('citas.vista') }}"          class="sidebar-link {{ request()->routeIs('citas.*')          ? 'active' : '' }}">Mis Citas</a>
+        <a href="{{ route('recetas.vista') }}"        class="sidebar-link {{ request()->routeIs('recetas.*')        ? 'active' : '' }}">Mis Recetas</a>
         <a href="{{ route('notificaciones.index') }}" class="sidebar-link {{ request()->routeIs('notificaciones.*') ? 'active' : '' }}">Mis Notificaciones</a>
     @endif
 
@@ -275,7 +297,116 @@
     </main>
 </div>
 
+{{-- Banner para activar notificaciones push --}}
+@auth
+<div id="push-banner" class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index:1100; display:none;">
+    <div class="toast show border-0 shadow" role="alert">
+        <div class="toast-header bg-primary text-white">
+            <strong class="me-auto"><i class="bi bi-bell"></i> Notificaciones</strong>
+            <button type="button" class="btn-close btn-close-white" onclick="ocultarBanner()"></button>
+        </div>
+        <div class="toast-body">
+            Activa las notificaciones para recibir recordatorios de citas y avisos.
+            <div class="mt-2 d-flex gap-2">
+                <button id="btn-activar-push" class="btn btn-primary btn-sm">Activar</button>
+                <button class="btn btn-secondary btn-sm" onclick="ocultarBanner()">Ahora no</button>
+            </div>
+        </div>
+    </div>
+</div>
+@endauth
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+// ── PWA Push Notifications ─────────────────────────────────────────
+(function () {
+    const LOG    = '[PWA Push]';
+    const banner = document.getElementById('push-banner');
+    const btnAct = document.getElementById('btn-activar-push');
+
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+
+    const VAPID_PUBLIC = '{{ config("pwa.vapid_public_key") }}';
+    if (!VAPID_PUBLIC) return;
+
+    function urlBase64ToUint8Array(base64) {
+        const pad = '='.repeat((4 - base64.length % 4) % 4);
+        const b64 = (base64 + pad).replace(/-/g, '+').replace(/_/g, '/');
+        const raw = atob(b64);
+        return Uint8Array.from([...raw].map(c => c.charCodeAt(0)));
+    }
+
+    function enviarSuscripcion(sub) {
+        const data = sub.toJSON();
+        fetch('/push/subscribe', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+            },
+            body: JSON.stringify(data),
+        })
+        .then(r => r.json())
+        .then(r => {
+            console.log(LOG, 'Suscripción guardada:', r);
+            ocultarBanner();
+        })
+        .catch(e => console.error(LOG, 'Error al guardar suscripción:', e));
+    }
+
+    function suscribir(sw) {
+        return sw.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC),
+        });
+    }
+
+    function activarPush() {
+        navigator.serviceWorker.ready.then(function (sw) {
+            Notification.requestPermission().then(function (permiso) {
+                console.log(LOG, 'Permiso:', permiso);
+                if (permiso !== 'granted') return;
+
+                suscribir(sw)
+                    .then(function (newSub) {
+                        console.log(LOG, 'Suscripción creada.');
+                        enviarSuscripcion(newSub);
+                    })
+                    .catch(function (e) {
+                        console.error(LOG, 'Error al suscribir:', e);
+                        // Limpia suscripción vieja y reintenta
+                        sw.pushManager.getSubscription()
+                            .then(old => old ? old.unsubscribe() : null)
+                            .then(() => suscribir(sw))
+                            .then(newSub => enviarSuscripcion(newSub))
+                            .catch(e2 => console.error(LOG, 'Re-intento fallido:', e2));
+                    });
+            });
+        });
+    }
+
+    if (btnAct) btnAct.addEventListener('click', activarPush);
+
+    // Al cargar: si ya hay permiso y suscripción, re-sincroniza con servidor
+    // Si no hay suscripción y el permiso no fue denegado, muestra el banner
+    navigator.serviceWorker.ready.then(function (sw) {
+        sw.pushManager.getSubscription().then(function (sub) {
+            if (sub) {
+                console.log(LOG, 'Ya suscrito, sincronizando con servidor.');
+                enviarSuscripcion(sub);
+            } else if (Notification.permission !== 'denied' && banner) {
+                banner.style.display = '';
+            }
+        });
+    });
+}());
+
+window.ocultarBanner = function () {
+    const b = document.getElementById('push-banner');
+    if (b) b.style.display = 'none';
+};
+</script>
 
 </body>
 </html>

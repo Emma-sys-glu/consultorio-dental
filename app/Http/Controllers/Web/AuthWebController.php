@@ -32,7 +32,11 @@ class AuthWebController extends Controller
 
         Auth::login($usuario);
 
-        return redirect()->route('dashboard');
+        return match ($usuario->rol) {
+            'dentista' => redirect()->route('dashboard.dentista'),
+            'paciente' => redirect()->route('dashboard.paciente'),
+            default    => redirect()->route('dashboard'),
+        };
     }
 
     public function logout()
