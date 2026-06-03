@@ -1,0 +1,45 @@
+services:
+  postgres_ha_principal:
+    image: bitnami/postgresql:latest
+    container_name: postgres_ha_principal
+    environment:
+      - POSTGRESQL_REPLICATION_MODE=master
+      - POSTGRESQL_REPLICATION_USER=replicador
+      - POSTGRESQL_REPLICATION_PASSWORD=replica123
+      - POSTGRESQL_USERNAME=admin
+      - POSTGRESQL_PASSWORD=admin123
+      - POSTGRESQL_DATABASE=consultorio_dental
+    ports:
+      - "5444:5432"
+    volumes:
+      - postgres_ha_principal_data:/bitnami/postgresql
+    networks:
+      - consultorio_ha
+
+  postgres_ha_replica:
+    image: bitnami/postgresql:latest
+    container_name: postgres_ha_replica
+    depends_on:
+      - postgres_ha_principal
+    environment:
+      - POSTGRESQL_REPLICATION_MODE=slave
+      - POSTGRESQL_REPLICATION_USER=replicador
+      - POSTGRESQL_REPLICATION_PASSWORD=replica123
+      - POSTGRESQL_MASTER_HOST=postgres_ha_principal
+      - POSTGRESQL_MASTER_PORT_NUMBER=5432
+      - POSTGRESQL_USERNAME=admin
+      - POSTGRESQL_PASSWORD=admin123
+      - POSTGRESQL_DATABASE=consultorio_dental
+    ports:
+      - "5443:5432"
+    volumes:
+      - postgres_ha_replica_data:/bitnami/postgresql
+    networks:
+      - consultorio_ha
+
+volumes:
+  postgres_ha_principal_data:
+  postgres_ha_replica_data:
+
+networks:
+  consultorio_ha:
