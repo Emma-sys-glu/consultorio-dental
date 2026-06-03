@@ -2,6 +2,7 @@ services:
   postgres_ha_principal:
     image: bitnami/postgresql:latest
     container_name: postgres_ha_principal
+    restart: unless-stopped
     environment:
       - POSTGRESQL_REPLICATION_MODE=master
       - POSTGRESQL_REPLICATION_USER=replicador
@@ -15,10 +16,17 @@ services:
       - postgres_ha_principal_data:/bitnami/postgresql
     networks:
       - consultorio_ha
+    healthcheck:
+      test: ["CMD", "/opt/bitnami/postgresql/bin/pg_isready", "-h", "127.0.0.1", "-p", "5432", "-U", "admin"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
 
   postgres_ha_replica:
     image: bitnami/postgresql:latest
     container_name: postgres_ha_replica
+    restart: unless-stopped
     depends_on:
       - postgres_ha_principal
     environment:
@@ -36,6 +44,12 @@ services:
       - postgres_ha_replica_data:/bitnami/postgresql
     networks:
       - consultorio_ha
+    healthcheck:
+      test: ["CMD", "/opt/bitnami/postgresql/bin/pg_isready", "-h", "127.0.0.1", "-p", "5432", "-U", "admin"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
 
 volumes:
   postgres_ha_principal_data:

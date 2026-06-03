@@ -236,3 +236,57 @@ php artisan cache:clear
 php artisan route:clear
 php artisan view:clear
 sudo chown -R www-data:www-data storage bootstrap/cache
+
+
+## Levante 
+
+Levantar BD en docker 
+cd /var/www/consultorio-dental && sudo docker compose -f docker-compose-replica.yml up -d
+
+Levantar servidor larabel 
+cd /var/www/consultorio-dental && php artisan serve --host=0.0.0.0 --port=8000
+
+
+Todo junto 
+cd /var/www/consultorio-dental && sudo docker compose -f docker-compose-replica.yml up -d && php artisan serve --host=0.0.0.0 --port=8000
+
+
+## Prueba Alta Disponibilidad 
+Terminal 1 — Watchdog en tiempo real
+
+sudo journalctl -u db-watchdog.service -f
+
+Terminal 2 — Estado de los contenedores (se refresca cada 2s)
+
+watch -n 2 'sudo docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"'
+
+
+Terminal 3 — La réplica siendo promovida (consulta continua)
+
+watch -n 2 'sudo docker exec -e PGPASSWORD=admin123 postgres_ha_replica \
+  psql -h 127.0.0.1 -U admin -d consultorio_dental \
+  -tAc "SELECT CASE WHEN pg_is_in_recovery() THEN '"'"'REPLICA (solo lectura)'"'"' ELSE '"'"'PRIMARIO (acepta escrituras)'"'"' END AS estado;"'
+
+
+  
+Terminal 4 — Aquí ejecutas el golpe
+Paso 1 — Confirmar que todo está bien:
+
+
+sudo docker exec -e PGPASSWORD=admin123 postgres_ha_principal \
+  psql -h 127.0.0.1 -U admin -d consultorio_dental \
+  -c "SELECT 'Principal vivo' AS estado, COUNT(*) AS pacientes FROM pacientes;"
+Paso 2 — Caer el principal:
+
+
+sudo docker stop postgres_ha_principal
+Paso 3 — Esperar ~15s y verificar que la réplica ya acepta escrituras:
+
+
+sudo docker exec -e PGPASSWORD=admin123 postgres_ha_replica \
+  psql -h 127.0.0.1 -U admin -d consultorio_dental \
+  -c "INSERT INTO inventarios(nombre,categoria,cantidad,stock_minimo,precio_unitario,created_at,updated_at) VALUES('Prueba HA','Test',1,1,1,now(),now()) RETURNING id, nombre, created_at;"
+Paso 4 — Ver el log del watchdog guardado:
+
+
+cat /var/log/db-watchdog.log
