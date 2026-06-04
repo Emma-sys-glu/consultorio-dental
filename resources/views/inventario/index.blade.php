@@ -18,10 +18,13 @@
                     <th>ID</th>
                     <th>Producto</th>
                     <th>Categoría</th>
-                    <th>Cantidad</th>
-                    <th>Stock mínimo</th>
+                    <th>Stock general</th>
+                    <th>C1</th>
+                    <th>C2</th>
+                    <th>C3</th>
+                    <th>C4</th>
+                    <th>Mínimo</th>
                     <th>Caducidad</th>
-                    <th>Proveedor</th>
                     <th>Estado</th>
                     <th>Acciones</th>
                 </tr>
@@ -31,12 +34,20 @@
             @foreach($productos as $producto)
                 <tr>
                     <td>{{ $producto->id }}</td>
-                    <td>{{ $producto->nombre }}</td>
+                    <td>
+                        <div class="fw-semibold">{{ $producto->nombre }}</div>
+                        @if($producto->proveedor)
+                            <div class="small text-muted">{{ $producto->proveedor }}</div>
+                        @endif
+                    </td>
                     <td>{{ $producto->categoria }}</td>
-                    <td>{{ $producto->cantidad }}</td>
+                    <td class="fw-semibold">{{ $producto->cantidad }}</td>
+                    <td class="text-muted">{{ $producto->stock_c1 }}</td>
+                    <td class="text-muted">{{ $producto->stock_c2 }}</td>
+                    <td class="text-muted">{{ $producto->stock_c3 }}</td>
+                    <td class="text-muted">{{ $producto->stock_c4 }}</td>
                     <td>{{ $producto->stock_minimo }}</td>
-                    <td>{{ $producto->fecha_caducidad }}</td>
-                    <td>{{ $producto->proveedor }}</td>
+                    <td>{{ $producto->fecha_caducidad ?? '—' }}</td>
 
                     <td>
                         @if($producto->cantidad <= $producto->stock_minimo)

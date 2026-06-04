@@ -34,7 +34,7 @@
                 </div>
 
                 <div class="col-md-3">
-                    <label class="form-label">Cantidad</label>
+                    <label class="form-label">Stock general (total)</label>
                     <input type="number" name="cantidad" class="form-control" value="{{ old('cantidad') }}" min="0" required>
                 </div>
 
@@ -52,6 +52,18 @@
                     <label class="form-label">Precio unitario</label>
                     <input type="number" step="0.01" name="precio_unitario" class="form-control" value="{{ old('precio_unitario') }}" min="0" required>
                 </div>
+
+                <div class="col-12">
+                    <hr class="my-1">
+                    <p class="text-muted small mb-2">Stock asignado por consultorio (opcional)</p>
+                </div>
+
+                @foreach([1,2,3,4] as $n)
+                <div class="col-md-3">
+                    <label class="form-label">Consultorio {{ $n }}</label>
+                    <input type="number" name="stock_c{{ $n }}" class="form-control" value="{{ old('stock_c'.$n, 0) }}" min="0">
+                </div>
+                @endforeach
 
             </div>
 

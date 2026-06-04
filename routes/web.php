@@ -58,6 +58,10 @@ Route::middleware('auth')->group(function () {
         ->middleware('rol:administrador,recepcionista')
         ->name('pacientes.guardar');
 
+    Route::get('/vista-pacientes/{paciente}', [PacienteWebController::class, 'show'])
+        ->middleware('rol:administrador,recepcionista')
+        ->name('pacientes.detalle');
+
     Route::get('/vista-pacientes/{paciente}/editar', [PacienteWebController::class, 'edit'])
         ->middleware('rol:administrador,recepcionista')
         ->name('pacientes.editar');
@@ -67,7 +71,7 @@ Route::middleware('auth')->group(function () {
         ->name('pacientes.actualizar');
 
     Route::delete('/vista-pacientes/{paciente}/eliminar', [PacienteWebController::class, 'destroy'])
-        ->middleware('rol:administrador')
+        ->middleware('rol:administrador,recepcionista')
         ->name('pacientes.eliminar');
 
     Route::get('/vista-dentistas', [DentistaWebController::class, 'index'])
@@ -99,11 +103,11 @@ Route::middleware('auth')->group(function () {
         ->name('citas.vista');
 
     Route::get('/vista-citas/crear', [CitaWebController::class, 'create'])
-        ->middleware('rol:administrador,recepcionista,paciente')
+        ->middleware('rol:administrador,recepcionista,dentista,paciente')
         ->name('citas.crear');
 
     Route::post('/vista-citas/guardar', [CitaWebController::class, 'store'])
-        ->middleware('rol:administrador,recepcionista,paciente')
+        ->middleware('rol:administrador,recepcionista,dentista,paciente')
         ->name('citas.guardar');
 
     Route::get('/vista-citas/{cita}/editar', [CitaWebController::class, 'edit'])
@@ -119,7 +123,7 @@ Route::middleware('auth')->group(function () {
         ->name('citas.cancelar');
 
     Route::delete('/vista-citas/{cita}/eliminar', [CitaWebController::class, 'destroy'])
-        ->middleware('rol:administrador,recepcionista,paciente')
+        ->middleware('rol:administrador,recepcionista,dentista')
         ->name('citas.eliminar');
 
     Route::get('/vista-recetas', [RecetaWebController::class, 'index'])
@@ -147,8 +151,12 @@ Route::middleware('auth')->group(function () {
         ->name('recetas.eliminar');
 
     Route::get('/vista-expedientes', [ExpedienteWebController::class, 'index'])
-        ->middleware('rol:administrador,dentista')
+        ->middleware('rol:administrador,dentista,recepcionista')
         ->name('expedientes.vista');
+
+    Route::get('/vista-expedientes/{expediente}/detalle', [ExpedienteWebController::class, 'show'])
+        ->middleware('rol:administrador,dentista,recepcionista')
+        ->name('expedientes.detalle');
 
     Route::get('/vista-expedientes/crear', [ExpedienteWebController::class, 'create'])
         ->middleware('rol:administrador,dentista')
@@ -159,7 +167,7 @@ Route::middleware('auth')->group(function () {
         ->name('expedientes.guardar');
 
     Route::get('/vista-expedientes/{expediente}/editar', [ExpedienteWebController::class, 'edit'])
-        ->middleware('rol:administrador,dentista')
+        ->middleware('rol:administrador,dentista,recepcionista')
         ->name('expedientes.editar');
 
     Route::put('/vista-expedientes/{expediente}/actualizar', [ExpedienteWebController::class, 'update'])
@@ -232,6 +240,9 @@ Route::middleware('auth')->group(function () {
         ->middleware('rol:administrador');
 
     Route::get('/probar-recordatorios', [JobWebController::class, 'probarRecordatorios'])
+        ->middleware('rol:administrador');
+
+    Route::get('/probar-recordatorio-2h', [JobWebController::class, 'probarRecordatorio2h'])
         ->middleware('rol:administrador');
 });
 

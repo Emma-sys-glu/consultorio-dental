@@ -54,6 +54,20 @@ class PacienteWebController extends Controller
             ->with('success', 'Paciente registrado correctamente');
     }
 
+    public function show(Paciente $paciente)
+    {
+        $paciente->load(['citas' => function ($q) {
+            $q->with('dentista')->orderBy('fecha', 'desc')->orderBy('hora_inicio', 'desc')->limit(10);
+        }, 'expediente']);
+
+        $tratamientos = \App\Models\Tratamiento::where('paciente_id', $paciente->id)
+            ->with('dentista')
+            ->orderBy('fecha_inicio', 'desc')
+            ->get();
+
+        return view('pacientes.show', compact('paciente', 'tratamientos'));
+    }
+
     public function edit(Paciente $paciente)
     {
         return view('pacientes.edit', [

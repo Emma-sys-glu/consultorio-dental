@@ -2,96 +2,70 @@
 
 namespace Database\Seeders;
 
-use App\Models\Cita;
-use App\Models\Dentista;
-use App\Models\Expediente;
-use App\Models\Paciente;
-use App\Models\Tratamiento;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 
 class TratamientoSeeder extends Seeder
 {
     public function run(): void
     {
         $nombres = [
-            'Extracción dental',
-            'Endodoncia',
-            'Ortodoncia',
-            'Limpieza dental',
-            'Blanqueamiento dental',
-            'Corona dental',
-            'Implante dental',
-            'Obturación',
-            'Cirugía periodontal',
-            'Sellador de fosas y fisuras',
+            'Extracción dental simple', 'Extracción de molar', 'Endodoncia unirradicular',
+            'Endodoncia birradicular', 'Ortodoncia fija metálica', 'Ortodoncia fija estética',
+            'Limpieza dental básica', 'Limpieza dental profunda', 'Blanqueamiento dental',
+            'Corona de metal porcelana', 'Corona de zirconia', 'Implante dental',
+            'Obturación resina simple', 'Obturación resina compuesta', 'Cirugía periodontal',
+            'Selladores de fosas', 'Prótesis parcial removible', 'Prótesis total',
+            'Carillas dentales', 'Tratamiento de bruxismo',
         ];
 
-        $estados = ['pendiente', 'en_proceso', 'finalizado', 'cancelado'];
-        $pesos   = [20, 15, 50, 15];
+        $estados = ['pendiente', 'en_proceso', 'finalizado', 'finalizado', 'cancelado'];
+        $costos  = [500, 800, 1200, 1500, 2000, 3000, 4500, 6000, 8000, 12000, 15000];
 
-        $pacienteIds  = Paciente::pluck('id')->toArray();
-        $dentistaIds  = Dentista::pluck('id')->toArray();
-        $expedientes  = Expediente::pluck('id', 'paciente_id')->toArray();
-        $citaIds      = Cita::pluck('id')->toArray();
+        $pacienteIds  = DB::table('pacientes')->pluck('id')->toArray();
+        $dentistaIds  = DB::table('dentistas')->pluck('id')->toArray();
+        $expedientes  = DB::table('expedientes')->pluck('id', 'paciente_id')->toArray();
+        $citaIds      = DB::table('citas')->pluck('id')->toArray();
 
-        $rows = [];
-        for ($i = 0; $i < 2000; $i++) {
-            $pacienteId  = $pacienteIds[array_rand($pacienteIds)];
+        $rows  = [];
+        $batch = 500;
+
+        for ($i = 0; $i < 3000; $i++) {
+            $pacienteId   = $pacienteIds[array_rand($pacienteIds)];
             $expedienteId = $expedientes[$pacienteId] ?? null;
+            if (!$expedienteId) continue;
 
-            if (!$expedienteId) {
-                continue;
-            }
-
-            $estadoIndex = $this->weightedRandom($pesos);
-            $estado      = $estados[$estadoIndex];
-
-            $fechaInicio = fake()->dateTimeBetween('-2 years', 'now');
+            $estado      = $estados[array_rand($estados)];
+            $fechaInicio = date('Y-m-d', strtotime('-' . mt_rand(0, 730) . ' days'));
             $fechaFin    = in_array($estado, ['finalizado', 'cancelado'])
-                ? fake()->dateTimeBetween($fechaInicio, 'now')
+                ? date('Y-m-d', strtotime($fechaInicio . ' +' . mt_rand(7, 180) . ' days'))
                 : null;
 
             $rows[] = [
                 'paciente_id'   => $pacienteId,
                 'dentista_id'   => $dentistaIds[array_rand($dentistaIds)],
                 'expediente_id' => $expedienteId,
-                'cita_id'       => fake()->boolean(70) && !empty($citaIds)
+                'cita_id'       => (mt_rand(0, 1) && !empty($citaIds))
                     ? $citaIds[array_rand($citaIds)]
                     : null,
                 'nombre'        => $nombres[array_rand($nombres)],
-                'descripcion'   => fake()->optional(0.8)->sentence(),
-                'costo'         => fake()->randomFloat(2, 200, 15000),
+                'descripcion'   => mt_rand(0, 1) ? 'Tratamiento realizado sin complicaciones.' : null,
+                'costo'         => $costos[array_rand($costos)],
                 'estado'        => $estado,
-                'fecha_inicio'  => $fechaInicio->format('Y-m-d'),
-                'fecha_fin'     => $fechaFin?->format('Y-m-d'),
+                'fecha_inicio'  => $fechaInicio,
+                'fecha_fin'     => $fechaFin,
                 'created_at'    => now(),
                 'updated_at'    => now(),
             ];
 
-            if (count($rows) >= 500) {
-                Tratamiento::insert($rows);
+            if (count($rows) >= $batch) {
+                DB::table('tratamientos')->insert($rows);
                 $rows = [];
             }
         }
 
         if (!empty($rows)) {
-            Tratamiento::insert($rows);
+            DB::table('tratamientos')->insert($rows);
         }
-    }
-
-    private function weightedRandom(array $weights): int
-    {
-        $total      = array_sum($weights);
-        $random     = mt_rand(1, $total);
-        $cumulative = 0;
-
-        foreach ($weights as $i => $weight) {
-            $cumulative += $weight;
-            if ($random <= $cumulative) {
-                return $i;
-            }
-        }
-
-        return count($weights) - 1;
     }
 }

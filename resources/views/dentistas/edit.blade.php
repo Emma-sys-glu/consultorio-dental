@@ -65,7 +65,12 @@
 
                 <div class="col-md-4">
                     <label class="form-label">Consultorio</label>
-                    <input type="text" name="consultorio" class="form-control" value="{{ old('consultorio', $dentista->consultorio) }}" required>
+                    <select name="consultorio" class="form-select" required>
+                        <option value="">Seleccionar</option>
+                        @foreach(['Consultorio 1','Consultorio 2','Consultorio 3','Consultorio 4'] as $c)
+                            <option value="{{ $c }}" @selected(old('consultorio', $dentista->consultorio) === $c)>{{ $c }}</option>
+                        @endforeach
+                    </select>
                 </div>
 
             </div>

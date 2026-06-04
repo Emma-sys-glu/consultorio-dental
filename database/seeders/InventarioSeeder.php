@@ -2,64 +2,129 @@
 
 namespace Database\Seeders;
 
-use App\Models\Inventario;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 
 class InventarioSeeder extends Seeder
 {
     public function run(): void
     {
-        $proveedores = [
-            'Dental Depot México',
-            'Patterson Dental',
-            'Henry Schein',
-            'DentalEZ México',
-            'Farmacéutica Nacional',
+        $proveedores = ['Dental Depot México', 'Patterson Dental', 'Henry Schein', 'DentalEZ México', 'Farmacéutica Nacional', 'Distribuidora Dental SA', 'MedSupply MX'];
+
+        $categorias = [
+            'Medicamentos' => [
+                ['base' => 'Amoxicilina',    'presentaciones' => ['250mg', '500mg', '875mg'],         'precio' => [120, 220, 380]],
+                ['base' => 'Ibuprofeno',     'presentaciones' => ['200mg', '400mg', '600mg'],         'precio' => [80,  180, 260]],
+                ['base' => 'Paracetamol',    'presentaciones' => ['500mg', '1g'],                     'precio' => [60,  120]],
+                ['base' => 'Clindamicina',   'presentaciones' => ['150mg', '300mg'],                  'precio' => [320, 580]],
+                ['base' => 'Metronidazol',   'presentaciones' => ['250mg', '500mg'],                  'precio' => [150, 280]],
+                ['base' => 'Diclofenaco',    'presentaciones' => ['25mg', '50mg', '75mg'],            'precio' => [90,  160, 240]],
+                ['base' => 'Ketorolaco',     'presentaciones' => ['10mg', '30mg'],                    'precio' => [180, 350]],
+                ['base' => 'Tramadol',       'presentaciones' => ['50mg', '100mg'],                   'precio' => [280, 480]],
+                ['base' => 'Dexametasona',   'presentaciones' => ['4mg', '8mg'],                      'precio' => [200, 380]],
+                ['base' => 'Clorhexidina',   'presentaciones' => ['0.12% 500ml', '0.20% 1L'],        'precio' => [120, 200]],
+                ['base' => 'Lidocaína',      'presentaciones' => ['2% amp x50', '2% amp x100'],      'precio' => [750, 1400]],
+                ['base' => 'Mepivacaína',    'presentaciones' => ['3% amp x50', '3% amp x100'],      'precio' => [700, 1300]],
+                ['base' => 'Articaína',      'presentaciones' => ['4% amp x50', '4% amp x100'],      'precio' => [850, 1600]],
+            ],
+            'Material dental' => [
+                ['base' => 'Resina compuesta', 'presentaciones' => ['A1 4g', 'A2 4g', 'A3 4g', 'B2 4g', 'C2 4g'],  'precio' => [420, 420, 420, 420, 420]],
+                ['base' => 'Cemento ionómero', 'presentaciones' => ['tipo I 15g', 'tipo II 15g', 'tipo III 20g'], 'precio' => [380, 480, 560]],
+                ['base' => 'Amalgama dental',  'presentaciones' => ['cápsulas x50', 'cápsulas x100'],            'precio' => [280, 520]],
+                ['base' => 'Hidróxido calcio', 'presentaciones' => ['polvo 50g', 'pasta 15g'],                   'precio' => [180, 240]],
+                ['base' => 'Alginato',         'presentaciones' => ['tipo I 500g', 'tipo II 500g', 'rápido 1kg'], 'precio' => [220, 280, 480]],
+                ['base' => 'Yeso piedra',      'presentaciones' => ['tipo III 1kg', 'tipo IV 1kg'],              'precio' => [85, 150]],
+                ['base' => 'Eugenol',          'presentaciones' => ['líquido 30ml', 'polvo 15g'],                'precio' => [120, 95]],
+                ['base' => 'Oxido de zinc',    'presentaciones' => ['polvo 25g', 'pasta 45g'],                   'precio' => [80, 130]],
+                ['base' => 'Adhesivo dental',  'presentaciones' => ['botella 5ml', 'kit 2 piezas'],             'precio' => [350, 680]],
+                ['base' => 'Sellador fosas',   'presentaciones' => ['frasco 5ml', 'frasco 10ml'],               'precio' => [280, 480]],
+            ],
+            'Instrumental' => [
+                ['base' => 'Espejo dental',      'presentaciones' => ['#4', '#5', '#6'],                          'precio' => [75, 85, 95]],
+                ['base' => 'Explorador',         'presentaciones' => ['simple', 'doble', 'recto'],                'precio' => [80, 95, 85]],
+                ['base' => 'Pinza de algodón',   'presentaciones' => ['recta 16cm', 'curva 16cm'],               'precio' => [70, 80]],
+                ['base' => 'Jeringa carpule',    'presentaciones' => ['estándar', 'aspirante'],                  'precio' => [280, 350]],
+                ['base' => 'Cureta periodontal', 'presentaciones' => ['Gracey #1-2', '#3-4', '#5-6', 'juego 6'], 'precio' => [180, 180, 180, 750]],
+                ['base' => 'Periotomo',          'presentaciones' => ['recto', 'curvo'],                         'precio' => [320, 360]],
+                ['base' => 'Porta amalgama',     'presentaciones' => ['plástico', 'metálico'],                   'precio' => [60, 140]],
+                ['base' => 'Fórceps extracción', 'presentaciones' => ['sup anterior', 'inf molar', 'pedíatrico'],'precio' => [480, 520, 380]],
+            ],
+            'Protección' => [
+                ['base' => 'Guantes látex',      'presentaciones' => ['S x100', 'M x100', 'L x100', 'XL x100'],  'precio' => [270, 280, 280, 290]],
+                ['base' => 'Guantes nitrilo',    'presentaciones' => ['S x100', 'M x100', 'L x100'],             'precio' => [320, 330, 330]],
+                ['base' => 'Cubrebocas tricapa', 'presentaciones' => ['x50', 'x100'],                            'precio' => [150, 280]],
+                ['base' => 'Cubrebocas N95',     'presentaciones' => ['x10', 'x25'],                             'precio' => [280, 650]],
+                ['base' => 'Careta facial',      'presentaciones' => ['plástico', 'con espuma'],                  'precio' => [45, 75]],
+                ['base' => 'Lentes protección',  'presentaciones' => ['claro', 'amarillo'],                      'precio' => [85, 95]],
+                ['base' => 'Dique de goma',      'presentaciones' => ['látex x36', 'nitrilo x36'],               'precio' => [240, 320]],
+                ['base' => 'Baberos desechables','presentaciones' => ['x500 blancos', 'x500 azules'],            'precio' => [280, 300]],
+            ],
+            'Limpieza' => [
+                ['base' => 'Rollos de algodón',  'presentaciones' => ['x200', 'x500'],                           'precio' => [65, 140]],
+                ['base' => 'Gasa estéril',        'presentaciones' => ['5x5 x100', '10x10 x100'],                'precio' => [95, 145]],
+                ['base' => 'Agujas dentales',     'presentaciones' => ['27G corta x100', '30G larga x100'],      'precio' => [320, 360]],
+                ['base' => 'Fresas diamante',     'presentaciones' => ['redonda x5', 'troncocónica x5', 'llama x5'], 'precio' => [280, 290, 285]],
+                ['base' => 'Papel articular',     'presentaciones' => ['rojo x12', 'azul x12', 'bicolor x12'],   'precio' => [110, 110, 125]],
+                ['base' => 'Eyectores saliva',    'presentaciones' => ['blancos x100', 'verdes x100'],           'precio' => [60, 65]],
+                ['base' => 'Puntas aspiración',   'presentaciones' => ['HVE x100', 'quirúrgicas x100'],         'precio' => [120, 180]],
+            ],
         ];
 
-        $items = [
-            ['nombre' => 'Resina compuesta A1',                        'categoria' => 'Material dental',  'precio_unitario' => 450.00],
-            ['nombre' => 'Resina compuesta A2',                        'categoria' => 'Material dental',  'precio_unitario' => 450.00],
-            ['nombre' => 'Resina compuesta B2',                        'categoria' => 'Material dental',  'precio_unitario' => 450.00],
-            ['nombre' => 'Amalgama dental',                            'categoria' => 'Material dental',  'precio_unitario' => 320.00],
-            ['nombre' => 'Cemento de ionómero de vidrio',              'categoria' => 'Material dental',  'precio_unitario' => 580.00],
-            ['nombre' => 'Hidróxido de calcio',                        'categoria' => 'Material dental',  'precio_unitario' => 210.00],
-            ['nombre' => 'Alginato tipo II (kg)',                      'categoria' => 'Material dental',  'precio_unitario' => 310.00],
-            ['nombre' => 'Yeso piedra tipo III (kg)',                  'categoria' => 'Material dental',  'precio_unitario' => 85.00],
-            ['nombre' => 'Cera de oclusión',                           'categoria' => 'Material dental',  'precio_unitario' => 95.00],
-            ['nombre' => 'Eugenol líquido',                            'categoria' => 'Material dental',  'precio_unitario' => 160.00],
-            ['nombre' => 'Espejo dental #5',                           'categoria' => 'Instrumental',     'precio_unitario' => 85.00],
-            ['nombre' => 'Explorador doble',                           'categoria' => 'Instrumental',     'precio_unitario' => 95.00],
-            ['nombre' => 'Pinza de algodón',                           'categoria' => 'Instrumental',     'precio_unitario' => 75.00],
-            ['nombre' => 'Jeringa carpule',                            'categoria' => 'Instrumental',     'precio_unitario' => 320.00],
-            ['nombre' => 'Curetas periodontales (juego)',              'categoria' => 'Instrumental',     'precio_unitario' => 890.00],
-            ['nombre' => 'Lidocaína 2% con epinefrina (caja 50 amp)', 'categoria' => 'Anestésico',       'precio_unitario' => 1200.00],
-            ['nombre' => 'Mepivacaína 3% (caja 50 amp)',              'categoria' => 'Anestésico',       'precio_unitario' => 1100.00],
-            ['nombre' => 'Articaína 4% (caja 50 amp)',                'categoria' => 'Anestésico',       'precio_unitario' => 1350.00],
-            ['nombre' => 'Amoxicilina 500mg (caja 100)',              'categoria' => 'Medicamento',      'precio_unitario' => 480.00],
-            ['nombre' => 'Ibuprofeno 400mg (caja 100)',               'categoria' => 'Medicamento',      'precio_unitario' => 220.00],
-            ['nombre' => 'Clindamicina 300mg (caja 50)',              'categoria' => 'Medicamento',      'precio_unitario' => 650.00],
-            ['nombre' => 'Metronidazol 500mg (caja 50)',              'categoria' => 'Medicamento',      'precio_unitario' => 380.00],
-            ['nombre' => 'Clorhexidina 0.12% (litro)',               'categoria' => 'Medicamento',      'precio_unitario' => 180.00],
-            ['nombre' => 'Guantes de látex M (caja 100)',            'categoria' => 'Desechable',       'precio_unitario' => 280.00],
-            ['nombre' => 'Guantes de látex L (caja 100)',            'categoria' => 'Desechable',       'precio_unitario' => 280.00],
-            ['nombre' => 'Cubrebocas tricapa (caja 50)',             'categoria' => 'Desechable',       'precio_unitario' => 150.00],
-            ['nombre' => 'Baberos desechables (paquete 500)',        'categoria' => 'Desechable',       'precio_unitario' => 320.00],
-            ['nombre' => 'Rollos de algodón (bolsa 200)',            'categoria' => 'Desechable',       'precio_unitario' => 95.00],
-            ['nombre' => 'Agujas dentales cortas 27G (caja 100)',    'categoria' => 'Desechable',       'precio_unitario' => 380.00],
-            ['nombre' => 'Fresas de diamante redonda (paquete 5)',   'categoria' => 'Desechable',       'precio_unitario' => 290.00],
-            ['nombre' => 'Papel articular (caja 12 libros)',         'categoria' => 'Accesorio',        'precio_unitario' => 120.00],
-            ['nombre' => 'Gasa estéril 10x10 (caja 100)',           'categoria' => 'Desechable',       'precio_unitario' => 145.00],
-            ['nombre' => 'Dique de goma (caja 36)',                  'categoria' => 'Desechable',       'precio_unitario' => 260.00],
-        ];
+        $rows  = [];
+        $batch = 500;
+        $seq   = 0;
 
-        foreach ($items as $item) {
-            Inventario::create(array_merge($item, [
-                'cantidad'        => rand(5, 200),
-                'stock_minimo'    => rand(5, 20),
-                'fecha_caducidad' => fake()->optional(0.6)->dateTimeBetween('+3 months', '+3 years')?->format('Y-m-d'),
-                'proveedor'       => $proveedores[array_rand($proveedores)],
-            ]));
+        // Generar productos a partir de las categorías hasta llegar a 3000
+        $total = 3000;
+        $productosPorCategoria = intdiv($total, count($categorias));
+
+        foreach ($categorias as $categoria => $productos) {
+            $generados = 0;
+
+            while ($generados < $productosPorCategoria) {
+                foreach ($productos as $producto) {
+                    foreach ($producto['presentaciones'] as $idx => $presentacion) {
+                        if ($generados >= $productosPorCategoria) break 2;
+
+                        $seq++;
+                        $precioBase = $producto['precio'][$idx] ?? end($producto['precio']);
+                        $total2     = mt_rand(20, 200);
+                        $c1 = (int) round($total2 * (mt_rand(15, 30) / 100));
+                        $c2 = (int) round($total2 * (mt_rand(15, 30) / 100));
+                        $c3 = (int) round($total2 * (mt_rand(15, 30) / 100));
+                        $c4 = max(0, $total2 - $c1 - $c2 - $c3);
+
+                        $rows[] = [
+                            'nombre'          => $producto['base'] . ' ' . $presentacion,
+                            'categoria'       => $categoria,
+                            'cantidad'        => $total2,
+                            'stock_c1'        => $c1,
+                            'stock_c2'        => $c2,
+                            'stock_c3'        => $c3,
+                            'stock_c4'        => $c4,
+                            'stock_minimo'    => mt_rand(5, 20),
+                            'fecha_caducidad' => $categoria === 'Medicamentos'
+                                ? date('Y-m-d', strtotime('+' . mt_rand(3, 36) . ' months'))
+                                : null,
+                            'proveedor'       => $proveedores[array_rand($proveedores)],
+                            'precio_unitario' => $precioBase * (mt_rand(90, 110) / 100),
+                            'created_at'      => now(),
+                            'updated_at'      => now(),
+                        ];
+
+                        $generados++;
+
+                        if (count($rows) >= $batch) {
+                            DB::table('inventarios')->insert($rows);
+                            $rows = [];
+                        }
+                    }
+                }
+            }
+        }
+
+        if (!empty($rows)) {
+            DB::table('inventarios')->insert($rows);
         }
     }
 }

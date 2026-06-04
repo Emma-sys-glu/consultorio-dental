@@ -45,44 +45,6 @@
     @include('pacientes.partials.tabla', ['pacientes' => $pacientes])
 </div>
 
-@if($pacientes->count())
-    @php
-        $pacienteResumen = $pacientes->first();
-    @endphp
-
-    <div class="card mt-4">
-        <div class="card-body p-4">
-            <div class="d-flex flex-column flex-md-row align-items-md-center gap-4">
-                <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 64px; height: 64px; background: #dff7fb; color: #067a7e;">
-                    <strong>
-                        {{ strtoupper(substr($pacienteResumen->nombre, 0, 1) . substr($pacienteResumen->apellido_paterno, 0, 1)) }}
-                    </strong>
-                </div>
-
-                <div class="flex-grow-1">
-                    <h3 class="h5 mb-1">
-                        {{ $pacienteResumen->nombre }}
-                        {{ $pacienteResumen->apellido_paterno }}
-                        {{ $pacienteResumen->apellido_materno }}
-                    </h3>
-                    <p class="text-muted small mb-2">
-                        Paciente desde {{ $pacienteResumen->created_at?->format('d/m/Y') ?? 'sin fecha' }}
-                        · Tel. {{ $pacienteResumen->telefono }}
-                    </p>
-                    <p class="mb-0">
-                        Ultimo registro:
-                        {{ $pacienteResumen->antecedentes_medicos ?: 'Sin antecedentes medicos registrados.' }}
-                    </p>
-                </div>
-
-                <div class="d-flex gap-2">
-                    <a href="{{ route('expedientes.vista') }}" class="btn btn-info btn-sm">Ver expediente</a>
-                    <a href="{{ route('citas.crear') }}" class="btn btn-primary btn-sm">Nueva cita</a>
-                </div>
-            </div>
-        </div>
-    </div>
-@endif
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {

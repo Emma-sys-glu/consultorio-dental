@@ -57,31 +57,65 @@ class InventarioWebController extends Controller
 
     private function validarInventario(Request $request): array
     {
-        return $request->validate([
-            'nombre' => 'required|string|max:100',
-            'categoria' => 'required|string|max:100',
-            'cantidad' => 'required|integer|min:0',
-            'stock_minimo' => 'required|integer|min:0',
+        $datos = $request->validate([
+            'nombre'          => 'required|string|max:100',
+            'categoria'       => 'required|string|max:100',
+            'cantidad'        => 'required|integer|min:0',
+            'stock_c1'        => 'nullable|integer|min:0',
+            'stock_c2'        => 'nullable|integer|min:0',
+            'stock_c3'        => 'nullable|integer|min:0',
+            'stock_c4'        => 'nullable|integer|min:0',
+            'stock_minimo'    => 'required|integer|min:0',
             'fecha_caducidad' => 'nullable|date',
-            'proveedor' => 'nullable|string|max:100',
-            'precio_unitario' => 'required|numeric|min:0'
+            'proveedor'       => 'nullable|string|max:100',
+            'precio_unitario' => 'required|numeric|min:0',
         ]);
+
+        $sumaConsultorios = ($datos['stock_c1'] ?? 0)
+                          + ($datos['stock_c2'] ?? 0)
+                          + ($datos['stock_c3'] ?? 0)
+                          + ($datos['stock_c4'] ?? 0);
+
+        if ($sumaConsultorios > $datos['cantidad']) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'stock_c1' => 'La suma del stock por consultorio (' . $sumaConsultorios . ') no puede superar el stock general (' . $datos['cantidad'] . ').',
+            ]);
+        }
+
+        // Normalizar nulls a 0
+        foreach (['stock_c1', 'stock_c2', 'stock_c3', 'stock_c4'] as $col) {
+            $datos[$col] = $datos[$col] ?? 0;
+        }
+
+        return $datos;
     }
 
     public function alertas()
-{
-    $stockBajo = \App\Models\Inventario::whereColumn('cantidad', '<=', 'stock_minimo')
-        ->orderBy('cantidad', 'asc')
-        ->get();
+    {
+        // Stock general bajo (cantidad <= stock_minimo)
+        $stockBajoGeneral = \App\Models\Inventario::whereColumn('cantidad', '<=', 'stock_minimo')
+            ->orderBy('cantidad', 'asc')
+            ->get();
 
-    $proximosCaducar = \App\Models\Inventario::whereNotNull('fecha_caducidad')
-        ->whereDate('fecha_caducidad', '<=', now()->addDays(30))
-        ->orderBy('fecha_caducidad', 'asc')
-        ->get();
+        // Stock bajo por consultorio (cada consultorio individualmente)
+        $stockBajoConsultorios = [];
+        foreach ([1, 2, 3, 4] as $n) {
+            $col = "stock_c{$n}";
+            $stockBajoConsultorios[$n] = \App\Models\Inventario::whereColumn($col, '<=', 'stock_minimo')
+                ->where($col, '>', 0)
+                ->orderBy($col, 'asc')
+                ->get();
+        }
 
-    return view('inventario.alertas', [
-        'stockBajo' => $stockBajo,
-        'proximosCaducar' => $proximosCaducar,
-    ]);
-}
+        $proximosCaducar = \App\Models\Inventario::whereNotNull('fecha_caducidad')
+            ->whereDate('fecha_caducidad', '<=', now()->addDays(30))
+            ->orderBy('fecha_caducidad', 'asc')
+            ->get();
+
+        return view('inventario.alertas', [
+            'stockBajoGeneral'       => $stockBajoGeneral,
+            'stockBajoConsultorios'  => $stockBajoConsultorios,
+            'proximosCaducar'        => $proximosCaducar,
+        ]);
+    }
 }

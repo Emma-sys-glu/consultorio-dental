@@ -36,22 +36,43 @@
                 top: 0;
                 bottom: 0;
                 overflow-y: auto;
-                
-                transform: translateX(calc(-220px + 8px));
+                transform: translateX(-220px);
                 transition: transform .28s cubic-bezier(.4, 0, .2, 1),
                             box-shadow .28s ease;
                 z-index: 1040;
             }
 
-            .app-sidebar:hover {
+            .app-sidebar.sidebar-open {
                 transform: translateX(0);
                 box-shadow: 4px 0 24px rgba(6, 122, 126, .3);
             }
 
-            /* el contenido ocupa toda la pantalla; el sidebar se superpone */
             .app-content {
                 margin-left: 0;
             }
+
+            /* Botón flotante para abrir/cerrar el sidebar */
+            #sidebar-toggle {
+                position: fixed;
+                left: 0;
+                bottom: 24px;
+                z-index: 1050;
+                width: 36px;
+                height: 36px;
+                background: var(--dental-teal);
+                color: #fff;
+                border: none;
+                border-radius: 0 8px 8px 0;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                box-shadow: 2px 2px 8px rgba(0,0,0,.2);
+                transition: left .28s cubic-bezier(.4,0,.2,1), background .15s;
+            }
+            #sidebar-toggle:hover { background: var(--dental-teal-dark); }
+            #sidebar-toggle.sidebar-open { left: 220px; }
+            #sidebar-toggle .toggle-icon { font-size: 18px; line-height: 1; }
         }
 
         .brand-dot,
@@ -185,9 +206,10 @@
         @endif
 
         @if($rol === 'recepcionista')
-            <a href="{{ route('citas.vista') }}"      class="sidebar-link {{ request()->routeIs('citas.*')      ? 'active' : '' }}">Citas</a>
-            <a href="{{ route('pacientes.vista') }}"  class="sidebar-link {{ request()->routeIs('pacientes.*')  ? 'active' : '' }}">Pacientes</a>
-            <a href="{{ route('inventario.vista') }}" class="sidebar-link {{ request()->routeIs('inventario.*') ? 'active' : '' }}">Inventario</a>
+            <a href="{{ route('citas.vista') }}"       class="sidebar-link {{ request()->routeIs('citas.*')       ? 'active' : '' }}">Citas</a>
+            <a href="{{ route('pacientes.vista') }}"   class="sidebar-link {{ request()->routeIs('pacientes.*')   ? 'active' : '' }}">Pacientes</a>
+            <a href="{{ route('expedientes.vista') }}" class="sidebar-link {{ request()->routeIs('expedientes.*') ? 'active' : '' }}">Expedientes</a>
+            <a href="{{ route('inventario.vista') }}"  class="sidebar-link {{ request()->routeIs('inventario.*')  ? 'active' : '' }}">Inventario</a>
         @endif
 
         @if($rol === 'dentista')
@@ -203,7 +225,7 @@
             <a href="{{ route('notificaciones.index') }}" class="sidebar-link {{ request()->routeIs('notificaciones.*') ? 'active' : '' }}">Mis Notificaciones</a>
         @endif
 
-        <a href="{{ route('configuracion.index') }}" class="sidebar-link {{ request()->routeIs('configuracion.*') ? 'active' : '' }}">Configuracion</a>
+        <a href="{{ route('configuracion.index') }}" class="sidebar-link {{ request()->routeIs('configuracion.*') ? 'active' : '' }}">Configuración</a>
     </div>
 </div>
 
@@ -242,9 +264,10 @@
     @endif
 
     @if($rol === 'recepcionista')
-        <a href="{{ route('citas.vista') }}"      class="sidebar-link {{ request()->routeIs('citas.*')      ? 'active' : '' }}">Citas</a>
-        <a href="{{ route('pacientes.vista') }}"  class="sidebar-link {{ request()->routeIs('pacientes.*')  ? 'active' : '' }}">Pacientes</a>
-        <a href="{{ route('inventario.vista') }}" class="sidebar-link {{ request()->routeIs('inventario.*') ? 'active' : '' }}">Inventario</a>
+        <a href="{{ route('citas.vista') }}"       class="sidebar-link {{ request()->routeIs('citas.*')       ? 'active' : '' }}">Citas</a>
+        <a href="{{ route('pacientes.vista') }}"   class="sidebar-link {{ request()->routeIs('pacientes.*')   ? 'active' : '' }}">Pacientes</a>
+        <a href="{{ route('expedientes.vista') }}" class="sidebar-link {{ request()->routeIs('expedientes.*') ? 'active' : '' }}">Expedientes</a>
+        <a href="{{ route('inventario.vista') }}"  class="sidebar-link {{ request()->routeIs('inventario.*')  ? 'active' : '' }}">Inventario</a>
     @endif
 
     @if($rol === 'dentista')
@@ -260,9 +283,13 @@
         <a href="{{ route('notificaciones.index') }}" class="sidebar-link {{ request()->routeIs('notificaciones.*') ? 'active' : '' }}">Mis Notificaciones</a>
     @endif
 
-    <a href="{{ route('configuracion.index') }}" class="sidebar-link {{ request()->routeIs('configuracion.*') ? 'active' : '' }}">Configuracion</a>
+    <a href="{{ route('configuracion.index') }}" class="sidebar-link {{ request()->routeIs('configuracion.*') ? 'active' : '' }}">Configuración</a>
 </aside>
 
+{{-- Botón toggle del sidebar (solo desktop) --}}
+<button id="sidebar-toggle" class="d-none d-lg-flex" title="Abrir/cerrar menú" aria-label="Abrir/cerrar menú">
+    <span class="toggle-icon">☰</span>
+</button>
 
 <div class="app-content">
     <header class="container-fluid px-4 pt-4">
@@ -272,7 +299,7 @@
 
             <form action="{{ route('logout') }}" method="POST">
                 @csrf
-                <button class="btn btn-outline-secondary btn-sm">Cerrar sesion</button>
+                <button class="btn btn-outline-secondary btn-sm">Cerrar sesión</button>
             </form>
         </div>
     </header>
@@ -317,6 +344,8 @@
 @endauth
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+@stack('scripts')
 
 <script>
 // ── PWA Push Notifications ─────────────────────────────────────────
@@ -386,16 +415,25 @@
         });
     }
 
-    if (btnAct) btnAct.addEventListener('click', activarPush);
+    if (btnAct) btnAct.addEventListener('click', function () {
+        activarPush();
+        localStorage.setItem(BANNER_KEY, '1'); // recuerda que el usuario eligió
+    });
 
-    // Al cargar: si ya hay permiso y suscripción, re-sincroniza con servidor
-    // Si no hay suscripción y el permiso no fue denegado, muestra el banner
+    // Al cargar: si ya hay permiso y suscripción, re-sincroniza con servidor.
+    // Solo muestra el banner si el usuario NO tomó una decisión antes.
+    const BANNER_KEY = 'push_decision_{{ auth()->id() }}';
+
     navigator.serviceWorker.ready.then(function (sw) {
         sw.pushManager.getSubscription().then(function (sub) {
             if (sub) {
                 console.log(LOG, 'Ya suscrito, sincronizando con servidor.');
                 enviarSuscripcion(sub);
-            } else if (Notification.permission !== 'denied' && banner) {
+            } else if (
+                Notification.permission !== 'denied' &&
+                !localStorage.getItem(BANNER_KEY) &&
+                banner
+            ) {
                 banner.style.display = '';
             }
         });
@@ -405,7 +443,54 @@
 window.ocultarBanner = function () {
     const b = document.getElementById('push-banner');
     if (b) b.style.display = 'none';
+    localStorage.setItem('push_decision_{{ auth()->id() }}', '1');
 };
+
+// ── Sidebar toggle (desktop) ───────────────────────────────────────
+(function () {
+    const btn     = document.getElementById('sidebar-toggle');
+    const sidebar = document.querySelector('.app-sidebar');
+    if (!btn || !sidebar) return;
+
+    const KEY = 'sidebar_open';
+
+    function aplicarEstado(open) {
+        if (open) {
+            sidebar.classList.add('sidebar-open');
+            btn.classList.add('sidebar-open');
+            btn.querySelector('.toggle-icon').textContent = '✕';
+            btn.title = 'Cerrar menú';
+        } else {
+            sidebar.classList.remove('sidebar-open');
+            btn.classList.remove('sidebar-open');
+            btn.querySelector('.toggle-icon').textContent = '☰';
+            btn.title = 'Abrir menú';
+        }
+    }
+
+    // Restaura el estado guardado (abierto por defecto si nunca se eligió)
+    const guardado = localStorage.getItem(KEY);
+    aplicarEstado(guardado === null ? false : guardado === '1');
+
+    btn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        const abierto = sidebar.classList.contains('sidebar-open');
+        aplicarEstado(!abierto);
+        localStorage.setItem(KEY, abierto ? '0' : '1');
+    });
+
+    // Cerrar al hacer click fuera del sidebar
+    document.addEventListener('click', function (e) {
+        if (
+            sidebar.classList.contains('sidebar-open') &&
+            !sidebar.contains(e.target) &&
+            !btn.contains(e.target)
+        ) {
+            aplicarEstado(false);
+            localStorage.setItem(KEY, '0');
+        }
+    });
+}());
 </script>
 
 </body>

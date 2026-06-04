@@ -60,11 +60,16 @@
                         </td>
 
                         <td class="text-end">
-                            <div class="d-inline-flex gap-1">
+                            <div class="d-inline-flex gap-1 flex-wrap">
+                                <a href="{{ route('pacientes.detalle', $paciente) }}" class="btn btn-info btn-sm">
+                                    Ver detalles
+                                </a>
+
                                 <a href="{{ route('pacientes.editar', $paciente) }}" class="btn btn-primary btn-sm">
                                     Editar
                                 </a>
 
+                                @if(in_array(auth()->user()->rol, ['administrador', 'recepcionista']))
                                 <form action="{{ route('pacientes.eliminar', $paciente) }}" method="POST">
                                     @csrf
                                     @method('DELETE')
@@ -73,6 +78,7 @@
                                         Eliminar
                                     </button>
                                 </form>
+                                @endif
                             </div>
                         </td>
                     </tr>

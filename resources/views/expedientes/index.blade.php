@@ -10,9 +10,11 @@
         <p class="text-muted mb-0">Historia medica, seguimiento y documentos del paciente.</p>
     </div>
 
+    @if(in_array(auth()->user()->rol, ['administrador', 'dentista']))
     <a href="{{ route('expedientes.crear') }}" class="btn btn-info mt-3 mt-md-0">
         Nuevo expediente
     </a>
+    @endif
 </div>
 
 <div class="card mb-4">
@@ -81,14 +83,22 @@
                             </td>
 
                             <td class="text-end">
-                                <div class="d-inline-flex gap-1">
-                                    <a href="{{ route('expedientes.editar', $expediente) }}" class="btn btn-primary btn-sm">Abrir</a>
+                                <div class="d-inline-flex gap-1 flex-wrap">
+                                    <a href="{{ route('expedientes.detalle', $expediente) }}" class="btn btn-info btn-sm">
+                                        Ver detalle
+                                    </a>
 
-                                    <form action="{{ route('expedientes.eliminar', $expediente) }}" method="POST">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button class="btn btn-danger btn-sm" onclick="return confirm('¿Seguro que deseas eliminar este expediente?')">Eliminar</button>
-                                    </form>
+                                    @if(in_array(auth()->user()->rol, ['administrador', 'dentista']))
+                                        <a href="{{ route('expedientes.editar', $expediente) }}" class="btn btn-primary btn-sm">Editar</a>
+                                    @endif
+
+                                    @if(auth()->user()->rol === 'administrador')
+                                        <form action="{{ route('expedientes.eliminar', $expediente) }}" method="POST">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button class="btn btn-danger btn-sm" onclick="return confirm('¿Seguro que deseas eliminar este expediente?')">Eliminar</button>
+                                        </form>
+                                    @endif
                                 </div>
                             </td>
                         </tr>

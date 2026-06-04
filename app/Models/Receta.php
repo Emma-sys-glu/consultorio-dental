@@ -13,6 +13,8 @@ class Receta extends Model
         'paciente_id',
         'dentista_id',
         'tratamiento_id',
+        'inventario_id',
+        'cantidad',
         'medicamento',
         'dosis',
         'frecuencia',
@@ -34,5 +36,10 @@ class Receta extends Model
     public function tratamiento()
     {
         return $this->belongsTo(Tratamiento::class);
+    }
+
+    public function inventario()
+    {
+        return $this->belongsTo(Inventario::class);
     }
 }

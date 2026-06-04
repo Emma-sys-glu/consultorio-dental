@@ -28,6 +28,11 @@ class User extends Authenticatable
         return $this->belongsTo(Paciente::class);
     }
 
+    public function pushSubscriptions()
+    {
+        return $this->hasMany(PushSubscription::class);
+    }
+
     public function dentista()
     {
         return $this->belongsTo(Dentista::class);

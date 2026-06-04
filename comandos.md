@@ -1,302 +1,353 @@
-## Arrancar proyecto local
+# Comandos rapidos DentalTec
 
-### 1. Entrar a la carpeta del proyecto
+Chuleta para el dia de la prueba. Copia y pega segun lo que necesites.
 
-```bash
-cd "/run/media/ernesto/OS/Users/ernes/Documents/University/8.-𝓢𝓮𝓶𝓮𝓼𝓽𝓻𝓮 8/Arquitectura Back-End/consultorio-dental"
-```
-
-### 2. Levantar PostgreSQL con Docker
+## 1. Revisar que estoy en el proyecto
 
 ```bash
-docker compose up -d
+pwd
+git branch
+git log -1 --oneline
 ```
 
-Verificar contenedores:
+## 2. Descargar cambios de main
 
 ```bash
-docker ps
+git fetch origin
+git checkout main
+git pull origin main
 ```
 
-Contenedores esperados:
-
-```text
-postgres_consultorio_1 -> puerto 5434
-postgres_consultorio_2 -> puerto 5433
-```
-
-### 3. Instalar dependencias
+## 3. Instalar dependencias
 
 ```bash
 composer install
 npm install
-```
-
-### 4. Configurar archivo .env
-
-Si no existe `.env`:
-
-```bash
-cp .env.example .env
-php artisan key:generate
-```
-
-Configuracion local esperada para PostgreSQL:
-
-```env
-DB_CONNECTION=pgsql
-DB_HOST=127.0.0.1
-DB_PORT=5434
-DB_DATABASE=consultorio_dental
-DB_USERNAME=admin
-DB_PASSWORD=admin123
-```
-
-### 5. Crear tablas
-
-```bash
-php artisan migrate
-```
-
-Si quieres reiniciar la base y volver a crear todo:
-
-```bash
-php artisan migrate:fresh
-```
-
-### 6. Restaurar backup de base de datos
-
-Si quieres cargar los datos del archivo `consultorio_backup.sql`:
-
-```bash
-cat consultorio_backup.sql | docker exec -i postgres_consultorio_1 psql -U admin -d consultorio_dental
-```
-
-### 7. Compilar vistas/assets
-
-Para produccion o cuando quieras dejar assets compilados:
-
-```bash
 npm run build
-```
-
-Crear enlace publico para archivos subidos, por ejemplo PDFs de expedientes:
-
-```bash
 php artisan storage:link
 ```
 
-Para desarrollo con Vite:
-
-```bash
-npm run dev
-```
-
-### 8. Limpiar caches de Laravel
+## 4. Limpiar cache de Laravel
 
 ```bash
 php artisan optimize:clear
 ```
 
-### 9. Arrancar servidor local Laravel
+## 5. Base de datos
+
+Contenedores:
+
+- Principal HA: `postgres_ha_principal` en puerto `5444`
+- Replica HA: `postgres_ha_replica` en puerto `5443`
+
+Ver estado de contenedores:
 
 ```bash
-php artisan serve --host=127.0.0.1 --port=8000
+sudo docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
 ```
 
-Abrir:
+Probar conexion desde Laravel:
+
+```bash
+php artisan db:show
+```
+
+Entrar a PostgreSQL:
+
+```bash
+sudo docker exec -it postgres_ha_principal psql -U admin -d consultorio_dental
+sudo docker exec -it postgres_ha_replica psql -U admin -d consultorio_dental
+```
+
+## 6. Migraciones y datos de prueba
+
+Actualizar tablas sin borrar datos:
+
+```bash
+php artisan migrate
+```
+
+Borrar y cargar todo desde cero (3000 registros por tabla):
+
+```bash
+php artisan db:seed --force
+```
+
+Sembrar una tabla especifica:
+
+```bash
+php artisan db:seed --class=InventarioSeeder --force
+php artisan db:seed --class=PacienteSeeder --force
+```
+
+## 7. Levantar Laravel
+
+Todo rapido:
+
+```bash
+composer install && php artisan optimize:clear && php artisan serve --host=0.0.0.0 --port=8000
+```
+
+Solo el servidor:
+
+```bash
+php artisan serve --host=0.0.0.0 --port=8000
+```
+
+Detener:
+
+```bash
+pkill -f "artisan serve"
+```
+
+## 8. Credenciales
 
 ```text
-http://127.0.0.1:8000
+Administrador
+  correo:    admin@dentaltec.com
+  password:  admin123
+
+Recepcionista
+  correo:    recepcion1@dentaltec.com
+  password:  recepcion123
+
+Dentista
+  correo:    dentista1@dentaltec.com
+  password:  dentista123
+
+Paciente
+  correo:    paciente1@dentaltec.com
+  password:  paciente123
 ```
 
-### 10. Credenciales locales
+Ver usuarios por rol:
 
-Si usaste el backup:
-
-```text
-Correo: admin@dentaltec.com
-Contraseña: admin123
+```bash
+php artisan tinker --execute="App\Models\User::whereIn('rol',['administrador','recepcionista'])->get(['rol','email','name'])->each(fn(\$u)=>print(\$u->rol.' | '.\$u->email.PHP_EOL));"
 ```
 
-Si usaste el usuario creado localmente anteriormente:
-
-```text
-Correo: admin@consultorio.com
-Contraseña: password
-```
-
-### 11. Verificaciones utiles
-
-Ver rutas:
+## 9. Verificaciones rapidas
 
 ```bash
 php artisan route:list
+php artisan test
+php artisan schedule:list
 ```
 
-Ver estado de Laravel:
+## 10. Alta disponibilidad PostgreSQL
+
+Levantar HA:
 
 ```bash
-php artisan about
+sudo docker compose -f docker-compose-replica.yml up -d
 ```
 
-Probar conexion a PostgreSQL desde Docker:
+Ver estado:
 
 ```bash
-docker exec -it postgres_consultorio_1 psql -U admin -d consultorio_dental
+sudo docker compose -f docker-compose-replica.yml ps
 ```
 
-Dentro de `psql`, listar tablas:
-
-```sql
-\dt
-```
-
-Salir de `psql`:
-
-```sql
-\q
-```
-
-### 12. Apagar Docker
+Ver logs:
 
 ```bash
-docker compose down
+sudo docker logs postgres_ha_principal --tail=50
+sudo docker logs postgres_ha_replica --tail=50
 ```
 
-Apagar Docker y borrar volumenes de base de datos:
+Ver si la replica esta conectada al principal:
 
 ```bash
-docker compose down -v
+sudo docker exec postgres_ha_principal psql -U admin -d consultorio_dental -c "SELECT * FROM pg_stat_replication;"
 ```
 
-Ojo: `down -v` borra los datos guardados en los volumenes.
+Ver si un contenedor esta como replica:
 
-## Actualizar contenido del repo en servidor 
+```bash
+sudo docker exec postgres_ha_replica psql -U admin -d consultorio_dental -c "SELECT pg_is_in_recovery();"
+```
 
-git pull origin main
+Resultado `t` = replica activa. Resultado `f` = ya es principal.
 
-## Entrar al servidor en consola  (para hacer cambios etc)
-ssh -i ~/.ssh/id_ed25519 ernestogomez2211@34.72.247.59
+## 11. Probar failover
 
+Terminal 1 — ver watchdog:
 
-## Para probar el server 
-URL: http://34.72.247.59:8000
-Correo: admin@dentaltec.com
-Contraseña: admin123
+```bash
+journalctl -u db-watchdog -f
+```
 
-## Login 
-Correo: admin@dentaltec.com
-Contraseña: admin123
+Terminal 2 — ver contenedores en vivo:
 
-## Cuando se suabn cambios al git hay que ejecutar en el server 
-cd ~/proyectos/consultorio-dental
-git pull origin main
-composer install
-npm install
-npm run build
-php artisan config:clear
-php artisan cache:clear
-php artisan route:clear
-php artisan view:clear
-php artisan storage:link
-
-### Si se agregaron nuevas tablas 
-php artisan migrate
-
-
-
-## Para que clones mi BD 
-cat consultorio_backup.sql | docker exec -i postgres_consultorio_1 psql -U admin -d consultorio_dental
-
-### Explicacion 
-Servidor Laravel: Google Cloud Debian
-Base de datos: PostgreSQL en Docker local
-Contenedor principal: postgres_consultorio_1
-Puerto local BD: 5434
-Puerto túnel en servidor: 15434
-Conexión: SSH reverse tunnel
-
-
-## Contraseñas Azure 
-adminUsername=ernesto adminPassword='DentalTec2026!*' location=mexicocentral  
-
-
-Tunel Azure 
-ssh -N -R 5434:127.0.0.1:5434 ernesto@dentaltec-g7yabej47nuye.mexicocentral.cloudapp.azure.com
-
-## Actualizar server 
-cd /var/www/consultorio-dental
-git pull origin main
-composer install
-npm install
-npm run build
-php artisan config:clear
-php artisan cache:clear
-php artisan route:clear
-php artisan view:clear
-sudo chown -R www-data:www-data storage bootstrap/cache
-
-
-## Levante 
-
-Levantar BD en docker 
-cd /var/www/consultorio-dental && sudo docker compose -f docker-compose-replica.yml up -d
-
-Levantar servidor larabel 
-cd /var/www/consultorio-dental && php artisan serve --host=0.0.0.0 --port=8000
-
-
-Todo junto 
-cd /var/www/consultorio-dental && sudo docker compose -f docker-compose-replica.yml up -d && php artisan serve --host=0.0.0.0 --port=8000
-
-sudo docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" 2>&1
-
-
-## Prueba Alta Disponibilidad 
-
-
-Terminal 1 — Watchdog en tiempo real
-
-sudo journalctl -u db-watchdog.service -f
-
-Terminal 2 — Estado de los contenedores (se refresca cada 2s)
-
+```bash
 watch -n 2 'sudo docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"'
+```
 
+Terminal 3 — ver si la replica cambio a principal:
 
-Terminal 3 — La réplica siendo promovida (consulta continua)
+```bash
+watch -n 2 'sudo docker exec -e PGPASSWORD=admin123 postgres_ha_replica psql -h 127.0.0.1 -U admin -d consultorio_dental -tAc "SELECT CASE WHEN pg_is_in_recovery() THEN '\''REPLICA'\'' ELSE '\''PRINCIPAL'\'' END;"'
+```
 
-watch -n 2 'sudo docker exec -e PGPASSWORD=admin123 postgres_ha_replica \
-  psql -h 127.0.0.1 -U admin -d consultorio_dental \
-  -tAc "SELECT CASE WHEN pg_is_in_recovery() THEN '"'"'REPLICA (solo lectura)'"'"' ELSE '"'"'PRIMARIO (acepta escrituras)'"'"' END AS estado;"'
+Terminal 4 — apagar el principal:
 
-
-  
-Terminal 4 — Aquí ejecutas el golpe
-Paso 1 — Confirmar que todo está bien:
-
-
-sudo docker exec -e PGPASSWORD=admin123 postgres_ha_principal \
-  psql -h 127.0.0.1 -U admin -d consultorio_dental \
-  -c "SELECT 'Principal vivo' AS estado, COUNT(*) AS pacientes FROM pacientes;"
-Paso 2 — Caer el principal:
-
-
+```bash
 sudo docker stop postgres_ha_principal
-Paso 3 — Esperar ~15s y verificar que la réplica ya acepta escrituras:
+```
 
+Esperar 15-25 segundos. Si `pg_is_in_recovery()` devuelve `f`, la replica ya es principal.
 
-sudo docker exec -e PGPASSWORD=admin123 postgres_ha_replica \
-  psql -h 127.0.0.1 -U admin -d consultorio_dental \
-  -c "INSERT INTO inventarios(nombre,categoria,cantidad,stock_minimo,precio_unitario,created_at,updated_at) VALUES('Prueba HA','Test',1,1,1,now(),now()) RETURNING id, nombre, created_at;"
-Paso 4 — Ver el log del watchdog guardado:
+Probar escritura en la replica promovida:
 
+```bash
+sudo docker exec -e PGPASSWORD=admin123 postgres_ha_replica psql -h 127.0.0.1 -U admin -d consultorio_dental -c "INSERT INTO inventarios(nombre,categoria,cantidad,stock_minimo,precio_unitario,created_at,updated_at) VALUES('Prueba HA','Test',1,1,1,now(),now()) RETURNING id, nombre;"
+```
 
-cat /var/log/db-watchdog.log
+## 12. Reiniciar alta disponibilidad limpia
 
+Borra los volumenes. Solo usar con datos de prueba.
 
-## Detener Server 
-pkill -f "artisan serve"; sudo systemctl stop db-watchdog.service && sudo docker compose -f /var/www/consultorio-dental/docker-compose-replica.yml down
+```bash
+sudo systemctl stop db-watchdog
+sudo docker compose -f docker-compose-replica.yml down -v
+sudo docker compose -f docker-compose-replica.yml up -d
+sudo systemctl start db-watchdog
+```
 
+## 13. Watchdog
 
+Crear o actualizar script:
+
+```bash
+sudo tee /usr/local/bin/db-watchdog.sh > /dev/null << 'EOF'
+#!/bin/bash
+FAILURES=0
+while true; do
+    if ! docker exec postgres_ha_principal pg_isready -h 127.0.0.1 -U admin > /dev/null 2>&1; then
+        FAILURES=$((FAILURES + 1))
+        if [ $FAILURES -ge 3 ]; then
+            docker exec postgres_ha_replica \
+                /opt/bitnami/postgresql/bin/pg_ctl promote \
+                -D /bitnami/postgresql/data
+            FAILURES=0
+        fi
+    else
+        FAILURES=0
+    fi
+    sleep 5
+done
+EOF
+sudo chmod +x /usr/local/bin/db-watchdog.sh
+```
+
+Crear o actualizar servicio:
+
+```bash
+sudo tee /etc/systemd/system/db-watchdog.service > /dev/null << 'EOF'
+[Unit]
+Description=Database HA Watchdog
+After=docker.service
+Requires=docker.service
+
+[Service]
+ExecStart=/usr/local/bin/db-watchdog.sh
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+sudo systemctl daemon-reload
+sudo systemctl enable db-watchdog
+sudo systemctl restart db-watchdog
+```
+
+Ver estado:
+
+```bash
+sudo systemctl status db-watchdog
+journalctl -u db-watchdog -f
+```
+
+## 14. Notificaciones push
+
+Ver estado general del sistema:
+
+```bash
+php artisan notif:estado
+```
+
+Probar alerta de stock bajo (envia push a admin y recepcionistas):
+
+```bash
+php artisan notif:inventario
+```
+
+Probar recordatorio de cita 1 dia antes:
+
+```bash
+php artisan notif:cita paciente1@dentaltec.com
+```
+
+Probar recordatorio 2 horas antes:
+
+```bash
+php artisan notif:cita paciente1@dentaltec.com --tipo=2h
+```
+
+Push de prueba a un usuario especifico:
+
+```bash
+php artisan push:test admin@dentaltec.com
+php artisan push:test recepcion1@dentaltec.com
+php artisan push:test paciente1@dentaltec.com
+```
+
+Push de prueba a todos los suscritos:
+
+```bash
+php artisan push:test
+```
+
+Ejecucion automatica (cron activo):
+
+```text
+08:00 diario  — recordatorio cita 1 dia antes   → pacientes
+08:05 diario  — alerta de inventario             → admin y recepcionistas
+cada hora     — recordatorio cita 2 horas antes  → pacientes
+```
+
+## 15. Servidor remoto
+
+Entrar:
+
+```bash
+ssh ernesto@dentaltec-g7yabej47nuye.mexicocentral.cloudapp.azure.com
+cd /var/www/consultorio-dental
+```
+
+Actualizar y reiniciar:
+
+```bash
+git pull origin main
+composer install
+npm run build
+php artisan optimize:clear
+sudo chown -R www-data:www-data storage bootstrap/cache
+```
+
+Levantar todo:
+
+```bash
+sudo docker compose -f docker-compose-replica.yml up -d
+php artisan serve --host=0.0.0.0 --port=8000
+```
+
+Detener:
+
+```bash
+pkill -f "artisan serve"
+sudo systemctl stop db-watchdog
+sudo docker compose -f docker-compose-replica.yml down
+```

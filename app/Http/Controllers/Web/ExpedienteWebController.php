@@ -54,6 +54,13 @@ class ExpedienteWebController extends Controller
             ->with('success', 'Expediente creado correctamente');
     }
 
+    public function show(Expediente $expediente)
+    {
+        return view('expedientes.show', [
+            'expediente' => $expediente->load(['paciente', 'documentos']),
+        ]);
+    }
+
     public function edit(Expediente $expediente)
     {
         return view('expedientes.edit', [

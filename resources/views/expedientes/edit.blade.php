@@ -1,22 +1,89 @@
 @extends('layouts.app')
 
-@section('title', 'Editar expediente - DentalCare')
+@section('title', 'Expediente clínico - DentalCare')
 
 @section('content')
 
+@php $soloLectura = auth()->user()->rol === 'recepcionista'; @endphp
+
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-        <h2 class="mb-1">Editar expediente clinico</h2>
+        <h2 class="mb-1">
+            {{ $soloLectura ? 'Ver expediente clínico' : 'Editar expediente clínico' }}
+        </h2>
         <p class="text-muted mb-0">
             {{ $expediente->paciente->nombre ?? '' }}
             {{ $expediente->paciente->apellido_paterno ?? '' }}
             {{ $expediente->paciente->apellido_materno ?? '' }}
         </p>
     </div>
-
     <a href="{{ route('expedientes.vista') }}" class="btn btn-outline-secondary">Volver</a>
 </div>
 
+@if($soloLectura)
+{{-- ── Vista de solo lectura para recepcionista ─────────── --}}
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="card mb-4">
+            <div class="card-header bg-white">
+                <strong>Resumen clínico</strong>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <div class="text-muted small mb-1">Paciente</div>
+                    <div class="fw-semibold">
+                        {{ $expediente->paciente->nombre ?? '' }}
+                        {{ $expediente->paciente->apellido_paterno ?? '' }}
+                        {{ $expediente->paciente->apellido_materno ?? '' }}
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <div class="text-muted small mb-1">Diagnóstico</div>
+                    <div>{{ $expediente->diagnostico ?: '—' }}</div>
+                </div>
+                <div class="mb-3">
+                    <div class="text-muted small mb-1">Observaciones clínicas</div>
+                    <div>{{ $expediente->observaciones ?: '—' }}</div>
+                </div>
+                <div class="mb-3">
+                    <div class="text-muted small mb-1">Procedimientos realizados</div>
+                    <div>{{ $expediente->procedimientos_realizados ?: '—' }}</div>
+                </div>
+                <div class="mb-0">
+                    <div class="text-muted small mb-1">Evolución del tratamiento</div>
+                    <div>{{ $expediente->evolucion_tratamiento ?: '—' }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card mb-4">
+            <div class="card-header bg-white">
+                <strong>Documentos adjuntos</strong>
+                <span class="badge text-bg-light ms-1">{{ $expediente->documentos->count() }}</span>
+            </div>
+            <div class="list-group list-group-flush">
+                @forelse($expediente->documentos as $documento)
+                    <div class="list-group-item">
+                        <div class="fw-semibold text-truncate">{{ $documento->nombre_original }}</div>
+                        <div class="small text-muted mb-1">
+                            {{ $documento->tipo }} · {{ number_format($documento->tamano / 1024, 1) }} KB
+                        </div>
+                        <a href="{{ asset('storage/' . $documento->ruta) }}" target="_blank" class="btn btn-outline-primary btn-sm">
+                            Abrir
+                        </a>
+                    </div>
+                @empty
+                    <div class="list-group-item text-muted small">Sin documentos adjuntos.</div>
+                @endforelse
+            </div>
+        </div>
+    </div>
+</div>
+
+@else
+{{-- ── Formulario de edición para admin/dentista ────────── --}}
 <form action="{{ route('expedientes.actualizar', $expediente) }}" method="POST" enctype="multipart/form-data">
     @csrf
     @method('PUT')
@@ -25,32 +92,29 @@
         <div class="col-lg-8">
             <div class="card mb-4">
                 <div class="card-header bg-white">
-                    <strong>Resumen clinico</strong>
+                    <strong>Resumen clínico</strong>
                 </div>
-
                 <div class="card-body">
                     <div class="mb-3">
                         <label class="form-label">Paciente</label>
-                        <input type="text" class="form-control" value="{{ $expediente->paciente->nombre ?? '' }} {{ $expediente->paciente->apellido_paterno ?? '' }} {{ $expediente->paciente->apellido_materno ?? '' }}" disabled>
+                        <input type="text" class="form-control"
+                               value="{{ $expediente->paciente->nombre ?? '' }} {{ $expediente->paciente->apellido_paterno ?? '' }} {{ $expediente->paciente->apellido_materno ?? '' }}"
+                               disabled>
                     </div>
-
                     <div class="mb-3">
-                        <label class="form-label">Diagnostico</label>
+                        <label class="form-label">Diagnóstico</label>
                         <textarea name="diagnostico" class="form-control" rows="3">{{ old('diagnostico', $expediente->diagnostico) }}</textarea>
                     </div>
-
                     <div class="mb-3">
-                        <label class="form-label">Observaciones clinicas</label>
+                        <label class="form-label">Observaciones clínicas</label>
                         <textarea name="observaciones" class="form-control" rows="3">{{ old('observaciones', $expediente->observaciones) }}</textarea>
                     </div>
-
                     <div class="mb-3">
                         <label class="form-label">Procedimientos realizados</label>
                         <textarea name="procedimientos_realizados" class="form-control" rows="3">{{ old('procedimientos_realizados', $expediente->procedimientos_realizados) }}</textarea>
                     </div>
-
                     <div class="mb-0">
-                        <label class="form-label">Evolucion del tratamiento</label>
+                        <label class="form-label">Evolución del tratamiento</label>
                         <textarea name="evolucion_tratamiento" class="form-control" rows="3">{{ old('evolucion_tratamiento', $expediente->evolucion_tratamiento) }}</textarea>
                     </div>
                 </div>
@@ -62,7 +126,6 @@
                 <div class="card-header bg-white">
                     <strong>Agregar documentos</strong>
                 </div>
-
                 <div class="card-body">
                     <div class="mb-3">
                         <label class="form-label">Tipo de documento</label>
@@ -74,11 +137,10 @@
                             <option value="Documento clinico" selected>Documento clinico</option>
                         </select>
                     </div>
-
                     <div class="mb-0">
                         <label class="form-label">Subir archivos</label>
                         <input type="file" name="documentos[]" class="form-control" accept=".pdf,.jpg,.jpeg,.png" multiple>
-                        <div class="form-text">PDF, JPG o PNG. Maximo 5 MB por archivo.</div>
+                        <div class="form-text">PDF, JPG o PNG. Máximo 5 MB por archivo.</div>
                     </div>
                 </div>
             </div>
@@ -96,7 +158,6 @@
         <strong>Documentos adjuntos</strong>
         <span class="badge text-bg-light">{{ $expediente->documentos->count() }}</span>
     </div>
-
     <div class="list-group list-group-flush">
         @forelse($expediente->documentos as $documento)
             <div class="list-group-item">
@@ -107,7 +168,6 @@
                             {{ $documento->tipo }} · {{ number_format($documento->tamano / 1024, 1) }} KB
                         </span>
                     </div>
-
                     <div class="d-flex gap-2">
                         <a href="{{ asset('storage/' . $documento->ruta) }}" target="_blank" class="btn btn-outline-primary btn-sm">Abrir</a>
                         <form action="{{ route('expedientes.documentos.eliminar', $documento) }}" method="POST">
@@ -119,11 +179,11 @@
                 </div>
             </div>
         @empty
-            <div class="list-group-item text-muted">
-                Este expediente no tiene documentos adjuntos.
-            </div>
+            <div class="list-group-item text-muted">Este expediente no tiene documentos adjuntos.</div>
         @endforelse
     </div>
 </div>
+
+@endif
 
 @endsection
