@@ -11,7 +11,7 @@ class DentistaController extends Controller
     {
         return response()->json([
             'mensaje' => 'Lista de dentistas',
-            'data' => Dentista::orderBy('id', 'desc')->paginate(5)
+            'data' => Dentista::orderBy('id', 'desc')->paginate(20)
         ]);
     }
 
