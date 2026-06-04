@@ -103,9 +103,7 @@ class InventarioSeeder extends Seeder
                             'stock_c3'        => $c3,
                             'stock_c4'        => $c4,
                             'stock_minimo'    => mt_rand(5, 20),
-                            'fecha_caducidad' => $categoria === 'Medicamentos'
-                                ? date('Y-m-d', strtotime('+' . mt_rand(3, 36) . ' months'))
-                                : null,
+                            'fecha_caducidad' => $this->generarCaducidad($categoria, $seq),
                             'proveedor'       => $proveedores[array_rand($proveedores)],
                             'precio_unitario' => $precioBase * (mt_rand(90, 110) / 100),
                             'created_at'      => now(),
@@ -125,6 +123,43 @@ class InventarioSeeder extends Seeder
 
         if (!empty($rows)) {
             DB::table('inventarios')->insert($rows);
+        }
+    }
+
+    private function generarCaducidad(string $categoria, int $seq): ?string
+    {
+        // Medicamentos y Material dental: siempre tienen caducidad
+        // Protección y Limpieza: ~60% tienen caducidad
+        // Instrumental: sin caducidad
+
+        $tieneCaducidad = match($categoria) {
+            'Medicamentos'   => true,
+            'Material dental'=> true,
+            'Protección'     => ($seq % 10) < 6,  // 60%
+            'Limpieza'       => ($seq % 10) < 5,  // 50%
+            default          => false,
+        };
+
+        if (!$tieneCaducidad) return null;
+
+        // Distribuir fechas para que la demo sea realista:
+        // ~15% ya vencidos o por vencer muy pronto (≤ 7 días)  → aparecen en alertas en rojo
+        // ~20% vencen en 8-30 días                              → aparecen en alertas en amarillo
+        // ~65% vencen en 1-36 meses                             → no disparan alerta
+        $rango = ($seq % 20);
+
+        if ($rango < 3) {
+            // vencido hace 1-10 días
+            return date('Y-m-d', strtotime('-' . mt_rand(1, 10) . ' days'));
+        } elseif ($rango < 6) {
+            // vence en 1-7 días (rojo)
+            return date('Y-m-d', strtotime('+' . mt_rand(1, 7) . ' days'));
+        } elseif ($rango < 10) {
+            // vence en 8-30 días (amarillo)
+            return date('Y-m-d', strtotime('+' . mt_rand(8, 30) . ' days'));
+        } else {
+            // vence en 1-36 meses (sin alerta)
+            return date('Y-m-d', strtotime('+' . mt_rand(1, 36) . ' months'));
         }
     }
 }

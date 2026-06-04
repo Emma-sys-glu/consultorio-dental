@@ -17,18 +17,6 @@ class TestPushNotification extends Command
         $total = PushSubscription::count();
         $this->info("Suscripciones push en BD: {$total}");
 
-        if ($total === 0) {
-            $this->warn('No hay suscripciones guardadas.');
-            $this->line('');
-            $this->line('Pasos para suscribirse:');
-            $this->line('  1. Abre https://dentaltec.mexicocentral.cloudapp.azure.com en Chrome/Edge/Firefox');
-            $this->line('  2. Inicia sesión con un usuario paciente');
-            $this->line('  3. Acepta el permiso de notificaciones cuando el navegador lo pida');
-            $this->line('  4. Abre DevTools → Consola y busca mensajes [PWA Push]');
-            $this->line('  5. Vuelve a correr: php artisan push:test');
-            return;
-        }
-
         $email = $this->argument('email');
 
         if ($email) {
@@ -44,7 +32,7 @@ class TestPushNotification extends Command
             }
             $this->enviar($user->id, $user->email);
         } else {
-            // Enviar a todos los suscritos
+
             PushSubscription::with('user')->get()
                 ->groupBy('user_id')
                 ->each(function ($subs, $userId) {
@@ -60,9 +48,7 @@ class TestPushNotification extends Command
         try {
             app(PushNotificationService::class)->enviarAlUsuario(
                 $userId,
-                'Prueba de notificación',
-                'Si ves esto, ¡las notificaciones push funcionan correctamente!',
-                '/notificaciones'
+                'Prueba de notificación'
             );
             $this->info("  ✓ Push enviado a {$email}");
         } catch (\Throwable $e) {

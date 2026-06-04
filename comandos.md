@@ -318,7 +318,40 @@ Ejecucion automatica (cron activo):
 cada hora     — recordatorio cita 2 horas antes  → pacientes
 ```
 
-## 15. Servidor remoto
+## 15. Arranque automatico al encender la VM
+
+Todos los servicios estan configurados para iniciar solos cuando la VM arranca.
+No hay que hacer nada manual. El orden de arranque es:
+
+```
+docker.service
+  └── dentaltec-db.service   (levanta los contenedores PostgreSQL HA)
+        └── db-watchdog.service  (monitorea failover)
+apache2.service              (sirve la aplicacion Laravel)
+cron.service                 (ejecuta el scheduler de notificaciones)
+```
+
+Verificar que todo este corriendo:
+
+```bash
+sudo systemctl status dentaltec-db db-watchdog apache2 --no-pager
+sudo docker ps --format "table {{.Names}}\t{{.Status}}"
+```
+
+Si algun servicio no arranco:
+
+```bash
+sudo systemctl start dentaltec-db
+sudo systemctl start db-watchdog
+```
+
+Ver que servicios arrancan al inicio:
+
+```bash
+sudo systemctl list-unit-files --state=enabled | grep -E "apache|docker|watchdog|dentaltec|cron"
+```
+
+## 16. Servidor remoto
 
 Entrar:
 
