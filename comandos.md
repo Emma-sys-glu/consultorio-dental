@@ -290,12 +290,6 @@ Probar recordatorio de cita 1 dia antes:
 php artisan notif:cita paciente1@dentaltec.com
 ```
 
-Probar recordatorio 2 horas antes:
-
-```bash
-php artisan notif:cita paciente1@dentaltec.com --tipo=2h
-```
-
 Push de prueba a un usuario especifico:
 
 ```bash
@@ -315,7 +309,6 @@ Ejecucion automatica (cron activo):
 ```text
 08:00 diario  — recordatorio cita 1 dia antes   → pacientes
 08:05 diario  — alerta de inventario             → admin y recepcionistas
-cada hora     — recordatorio cita 2 horas antes  → pacientes
 ```
 
 ## 15. Arranque automatico al encender la VM

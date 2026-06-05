@@ -11,13 +11,12 @@ use Illuminate\Console\Command;
 
 class NotificacionCitaTest extends Command
 {
-    protected $signature   = 'notif:cita {email : Email del paciente} {--tipo=1d : 1d = 1 dia antes, 2h = 2 horas antes}';
-    protected $description = 'Prueba notificaciones de recordatorio de cita para un paciente';
+    protected $signature   = 'notif:cita {email : Email del paciente}';
+    protected $description = 'Prueba notificacion de recordatorio de cita (1 dia antes) para un paciente';
 
     public function handle(): void
     {
         $email = $this->argument('email');
-        $tipo  = $this->option('tipo');
 
         $usuario = User::where('email', $email)->first();
 
@@ -53,15 +52,9 @@ class NotificacionCitaTest extends Command
             ? 'Dr. ' . $cita->dentista->nombre . ' ' . $cita->dentista->apellido_paterno
             : 'tu dentista';
 
-        if ($tipo === '2h') {
-            $titulo  = 'Tu cita es en 2 horas';
-            $mensaje = "Tu cita de hoy es a las {$hora} con {$drNombre}. Recuerda llegar a tiempo.";
-            $tipoDb  = 'recordatorio_2h';
-        } else {
-            $titulo  = 'Recordatorio: cita manana';
-            $mensaje = "Manana tienes cita a las {$hora} con {$drNombre}. Llega 10 minutos antes.";
-            $tipoDb  = 'recordatorio_cita';
-        }
+        $titulo  = 'Recordatorio: cita manana';
+        $mensaje = "Manana tienes cita a las {$hora} con {$drNombre}. Llega 10 minutos antes.";
+        $tipoDb  = 'recordatorio_cita';
 
         $notif = Notificacion::create([
             'paciente_id' => $usuario->paciente_id,

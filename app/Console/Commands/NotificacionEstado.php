@@ -44,12 +44,7 @@ class NotificacionEstado extends Command
         $this->newLine();
         $this->info('--- Citas proximas ---');
         $manana = Cita::whereDate('fecha', Carbon::tomorrow())->whereNotIn('estado', ['cancelada'])->count();
-        $en2h   = Cita::whereDate('fecha', Carbon::today())
-            ->whereTime('hora_inicio', '>=', Carbon::now()->addMinutes(110)->format('H:i:s'))
-            ->whereTime('hora_inicio', '<=', Carbon::now()->addMinutes(130)->format('H:i:s'))
-            ->whereNotIn('estado', ['cancelada'])->count();
         $this->line("Citas manana (recordatorio 1d): {$manana}");
-        $this->line("Citas en ~2h (recordatorio 2h): {$en2h}");
 
         $this->newLine();
         $this->info('--- Ultimas notificaciones hoy ---');
@@ -67,7 +62,6 @@ class NotificacionEstado extends Command
         $this->line('php artisan notif:estado');
         $this->line('php artisan notif:inventario');
         $this->line('php artisan notif:cita {email}');
-        $this->line('php artisan notif:cita {email} --tipo=2h');
         $this->line('php artisan push:test');
         $this->line('php artisan push:test {email}');
     }

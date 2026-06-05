@@ -242,8 +242,6 @@ Route::middleware('auth')->group(function () {
     Route::get('/probar-recordatorios', [JobWebController::class, 'probarRecordatorios'])
         ->middleware('rol:administrador');
 
-    Route::get('/probar-recordatorio-2h', [JobWebController::class, 'probarRecordatorio2h'])
-        ->middleware('rol:administrador');
 });
 
 // PWA — página sin conexión (pública)

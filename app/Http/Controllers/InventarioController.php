@@ -43,7 +43,17 @@ class InventarioController extends Controller
 
     public function update(Request $request, Inventario $inventario)
     {
-        $inventario->update($request->all());
+        $datos = $request->validate([
+            'nombre'          => 'sometimes|string|max:100',
+            'categoria'       => 'sometimes|string|max:100',
+            'cantidad'        => 'sometimes|integer|min:0',
+            'stock_minimo'    => 'sometimes|integer|min:0',
+            'fecha_caducidad' => 'nullable|date',
+            'proveedor'       => 'nullable|string|max:100',
+            'precio_unitario' => 'sometimes|numeric|min:0',
+        ]);
+
+        $inventario->update($datos);
 
         return response()->json([
             'mensaje' => 'Producto actualizado',
